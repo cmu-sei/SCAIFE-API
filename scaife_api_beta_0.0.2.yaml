@@ -1,0 +1,2951 @@
+swagger: '2.0'
+info:
+  description: >-
+    API to facilitate auditing static analysis alerts using classifiers,
+    optional adaptive heuristics, and alert prioritization. The API enables
+    jump-starting labeled datasets using test suites. It is intended to enable a
+    wide range of users (with widely varying datasets, static analysis tools,
+    ranging from having no labeled data to having a lot of labeled data, and
+    regardless of if they have their own statistical experts) to benefit from
+    using classifiers and sophisticated prioritization to automatically triage
+    handling their static analysis alerts.
+  version: 0.0.2
+  title: SCAIFE API Definition for Rapid Models Project
+  contact:
+    name: Ebonie McNeil, Aubrie Woods, and Lori Flynn
+    url: >-
+      https://www.sei.cmu.edu/research-capabilities/all-work/display.cfm?customel_datapageid_4050=6453
+    email: lflynn@cert.org
+  license:
+    name: >-
+      Copyright 2007-2019 Carnegie Mellon University. All Rights Reserved.
+      Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+      1. Redistributions of source code must retain the above copyright notice, this list of conditions and the fol-lowing disclaimer.
+      2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+      3. Products derived from this software may not include “Carnegie Mellon University,” "SEI” and/or “Soft-ware Engineering Institute" in the name of such derived product, nor shall “Carnegie Mellon University,” "SEI” and/or “Software Engineering Institute" be used to endorse or promote products derived from this software without prior written permission. For written permission, please contact permission@sei.cmu.edu.
+      ACKNOWLEDGMENTS AND DISCLAIMERS:
+      This material is based upon work funded and supported by the Department of Defense under Contract No. FA8702-15-D-0002 with Carnegie Mellon University for the operation of the Software Engineering Insti-tute, a federally funded research and development center.
+      The view, opinions, and/or findings contained in this material are those of the author(s) and should not be construed as an official Government position, policy, or decision, unless designated by other documenta-tion.
+      NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
+      [DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited dis-tribution.  Please see Copyright notice for non-US Government use and distribution.
+      This material includes field names used in the Software Assurance Marketplace (SWAMP), a service that provides continuous software assurance capabilities to developers and researchers at https://www.mir-swamp.org/#.  Copyright © 2012-2019 The Morgridge Institute for Research, Inc. All rights reserved.”
+      This material includes field names used in the Software Assurance Tool (SwAT), a tool that is used by ana-lysts to analyze static analysis alerts from multiple static analysis tools. https://www.cerdec.army.mil/ Combat Capabilities Development Command (CCDC) C5ISR Center. All rights reserved.
+      DM19-0572
+host: '127.0.0.1'
+paths:
+  /register:
+    post:
+      tags:
+        - UI_to_Registration
+      summary: Registration page; Create new users in the SCAIFE system
+      operationId: register_users
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: user_information
+          description: User information
+          required: true
+          schema:
+            $ref: '#/definitions/user_information'
+      responses:
+        '201':
+          description: User Created
+        '400':
+          description: Invalid Request
+        '405':
+          description: Registration Unavailable
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+  /login:
+    post:
+      tags:
+        - UI_to_Registration
+      summary: Login page; Authenticate to the SCAIFE system
+      operationId: login_user
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: login_credentials
+          description: Login credentials for the user.
+          required: false
+          schema:
+            $ref: '#/definitions/login_credentials'
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/access_token'
+        '400':
+          description: Invalid Request
+        '405':
+          description: Login Unavailable
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+  '/server/{server_name}':
+    get:
+      tags:
+        - UI_to_Registration
+      summary: Get access token to use other servers
+      operationId: get_server_access
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: server_name
+          description: >-
+            Name of the server to grant access to, expected values [statistics,
+            datahub, prioritization]
+          required: true
+          type: string
+        - name: x_access_token
+          in: header
+          description: Access token verifying user
+          required: true
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/access_token'
+        '400':
+          description: Invalid Request
+        '405':
+          description: Server Access Unavailable
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+  /classifiers:
+    get:
+      tags:
+        - UI_to_Stats
+      summary: >-
+        List all classifiers and their associated data. Use the ids returned
+        from this request to work with classifiers.
+      operationId: list_classifiers
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: x_access_token
+          in: header
+          description: Token that contains information about the user
+          required: true
+          type: string
+        - name: x_request_token
+          in: header
+          description: Token that associates messages with each other
+          required: true
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/list_classifiers_response'
+        '404':
+          description: Classifiers Unavailable
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+      x-swagger-router-controller: swagger_server.controllers.ui_to_stats_controller
+    post:
+      tags:
+        - UI_to_Stats
+      summary: >-
+        Create a new classifier instance. Send Classifier information including
+        Automated Hyper-Parameter Optimization (AHPO) and Adaptive Heuristics to
+        the Stats Module along with package_ids for packages to use in
+        creating/training a classifier. Returns an id that is used to then run
+        the classifier and any  additional information for the classifier.
+      operationId: create_classifier_instance
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: x_access_token
+          in: header
+          description: Token that contains information about the user
+          required: true
+          type: string
+        - name: x_request_token
+          in: header
+          description: Token that associates messages with each other
+          required: true
+          type: string
+        - in: body
+          name: classifier_instance
+          description: Classifier information to create
+          required: true
+          schema:
+            $ref: '#/definitions/classifier_instance'
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/create_classifier_response'
+        '400':
+          description: Unable to Create Classifier
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+        x-swagger-router-controller: swagger_server.controllers.ui_to_stats_controller
+  '/classifiers/{classifier_instance_id}/projects/{project_id}':
+    put:
+      tags:
+        - UI_to_Stats
+      summary: >-
+        Run a specific classifier instance on the project identified by id in
+        the path. The response contains estimated class probablities and
+        analysis of classifier performance.
+      operationId: run_classifier_instance
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: x_access_token
+          in: header
+          description: Token that contains information about the user
+          required: true
+          type: string
+        - name: x_request_token
+          in: header
+          description: Token that associates messages with each other
+          required: true
+          type: string
+        - name: classifier_instance_id
+          in: path
+          description: The id of the classifier instance to run on the target domain
+          required: true
+          type: string
+        - name: project_id
+          in: path
+          description: The id of the project containing the packages
+          required: true
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/classifier_results'
+        '400':
+          description: Unable to Run Classifier
+        '404':
+          description: Invalid Request
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+          x-swagger-router-controller: swagger_server.controllers.ui_to_stats_controller
+  '/classifiers/{classifier_instance_id}':
+    get:
+      tags:
+        - UI_to_Stats
+      summary: Get analysis for a specific Classifier including performance metrics.
+      operationId: get_classifier_instance_analysis
+      consumes:
+        - application/json
+      produces:
+        - application/json
+        - text/html
+      parameters:
+        - name: x_access_token
+          in: header
+          description: Token that contains information about the user
+          required: true
+          type: string
+        - name: x_request_token
+          in: header
+          description: Token that associates messages with each other
+          required: true
+          type: string
+        - name: classifier_instance_id
+          in: path
+          description: The id of the classifier to get analysis info
+          required: true
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/analysis_results'
+        '404':
+          description: Classifier Information Unavailable
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+          x-swagger-router-controller: swagger_server.controllers.ui_to_stats_controller
+    put:
+      tags:
+        - UI_to_Stats
+      summary: >-
+        Edit a specific classifier from the Stats module by
+        classifier_instance_id.       
+      operationId: edit_classifier_instance
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: x_access_token
+          in: header
+          description: Token that contains information about the user
+          required: true
+          type: string
+        - name: x_request_token
+          in: header
+          description: Token that associates messages with each other
+          required: true
+          type: string
+        - name: classifier_instance_id
+          in: path
+          description: The id of the classifier instance to edit
+          required: true
+          type: string
+        - in: body
+          name: classifier_instance
+          description: Classifier information to edit
+          required: true
+          schema:
+            $ref: '#/definitions/classifier_instance'
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/create_classifier_response'
+        '400':
+          description: Unable to Edit Classifier
+        '404':
+          description: Invalid Request
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+          x-swagger-router-controller: swagger_server.controllers.ui_to_stats_controller
+    delete:
+      tags:
+        - UI_to_Stats
+      summary: >-
+        Delete a specific classifier from the Stats module by
+        classifier_instance_id.
+      operationId: delete_classifier_instance
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: x_access_token
+          in: header
+          description: Token that contains information about the user
+          required: true
+          type: string
+        - name: x_request_token
+          in: header
+          description: Token that associates messages with each other
+          required: true
+          type: string
+        - name: classifier_instance_id
+          in: path
+          description: The id of the classifier to delete
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Classifier Successfully Deleted
+          schema:
+            $ref: '#/definitions/request_token'
+        '400':
+          description: Invalid Request
+        '404':
+          description: Unable to Delete Classifier
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+      x-swagger-router-controller: swagger_server.controllers.ui_to_stats_controller
+  '/classifiers/{classifier_instance_id}/retrain':
+    put:
+      tags:
+        - UI_to_Stats
+      summary: >-
+        Returns new probability values if there are updates from the selected
+        classifier_instance.
+      operationId: retrain
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: x_access_token
+          in: header
+          description: Token that contains information about the user
+          required: true
+          type: string
+        - name: x_request_token
+          in: header
+          description: Token that associates messages with each other
+          required: true
+          type: string
+        - name: classifier_instance_id
+          in: path
+          description: The id of the classifier instance to run on the target domain
+          required: true
+          type: string
+        - in: body
+          name: classifier_instance_data
+          description: Information to send close adaptive heuristic request
+          required: true
+          schema:
+            $ref: '#/definitions/classifier_instance_data'
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/classifier_results'
+        '400':
+          description: Unable to Run Classifier
+        '404':
+          description: Invalid Request
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+        x-swagger-router-controller: swagger_server.controllers.ui_to_stats_controller
+  '/classifiers/{classifier_instance_id}/adaptive_heuristics/close':
+    put:
+      tags:
+        - UI_to_Stats
+      summary: >-
+        Stop adaptive heuristic forward request. Send a request to close (set to
+        false) the adaptive heuristic for the packages listed in the classifier
+        instance.
+      operationId: close_adaptive_heuristic_data_forwarding
+      consumes:
+        - application/json
+      parameters:
+        - name: x_access_token
+          in: header
+          description: Token that contains information about the user
+          required: true
+          type: string
+        - name: x_request_token
+          in: header
+          description: Token that associates messages with each other
+          required: true
+          type: string
+        - name: classifier_instance_id
+          in: path
+          description: The id of the classifier instance to run on the target domain
+          required: true
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/close_adaptive_heuristics_response'
+        '400':
+          description: Invalid Close Request
+        '404':
+          description: Classifier Instance Unavailable
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+        x-swagger-router-controller: swagger_server.controllers.ui_to_stats_controller
+  '/projects/{project_id}/{package_id}/alerts':
+    put:
+      tags:
+        - DataHub_to_Stats
+      summary: >-
+        Forward new Alerts that have been uploaded to the DataHub and have a
+        current open adaptive heuristic request for its respective package.
+        Returns status message for the DataHub to track if the request was
+        completed.
+      operationId: send_alert_updates_for_classifier
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: x_access_token
+          in: header
+          description: Token that contains information about the user
+          required: true
+          type: string
+        - name: x_request_token
+          in: header
+          description: Token that associates messages with each other
+          required: true
+          type: string
+        - name: project_id
+          in: path
+          description: The id of the project associated with these alerts
+          required: true
+          type: string
+        - name: package_id
+          in: path
+          description: The id of the package associated with these alerts
+          required: true
+          type: string
+        - in: body
+          name: multiple_alerts
+          description: Updated alert data
+          required: true
+          schema:
+            $ref: '#/definitions/multiple_alerts'
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/alert_updates_response'
+        '400':
+          description: Unable to Upload Alerts
+        '404':
+          description: Invalid Package
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+        x-swagger-router-controller: swagger_server.controllers.data_hub_to_stats_controller
+  '/packages/tools/{tool_id}':
+    put:
+      tags:
+        - DataHub_to_Stats
+      summary: >-
+        Send FFSA or code metrics tool info to the Stats Module. When a new tool
+        is uploaded, the DataHub can send new tool info for packages with open
+        adaptive heuristic requests automatically to keep the Stats Module in
+        sync.
+      operationId: send_new_tool
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: x_access_token
+          in: header
+          description: Token that contains information about the user
+          required: true
+          type: string
+        - name: x_request_token
+          in: header
+          description: Token that associates messages with each other
+          required: true
+          type: string
+        - name: tool_id
+          in: path
+          description: The id of the tool uploaded to the DataHub
+          required: true
+          type: string
+        - in: body
+          name: packages_with_tool_data
+          description: >-
+            Tool info, including name, version, plus FFSA checker info OR code
+            metrics field info and package ids associated with this new tool.
+          required: true
+          schema:
+            $ref: '#/definitions/packages_with_tool_data'
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: integer
+        '400':
+          description: Unable to Upload Tool Information
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+          x-swagger-router-controller: swagger_server.controllers.data_hub_to_stats_controller
+  /priorities:
+    get:
+      tags:
+        - UI_to_Prioritization
+      summary: List all prioritization schemes
+      operationId: list_prioritizations
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: x_access_token
+          in: header
+          description: Token that contains information about the user
+          required: true
+          type: string
+        - name: x_request_token
+          in: header
+          description: Token that associates messages with each other
+          required: true
+          type: string
+        - name: project_id
+          in: header
+          description: ID of the project associated with the priority schemes in the list
+          required: false
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/prioritization_list'
+        '404':
+          description: Prioritization Schemes Not Found
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+      x-swagger-router-controller: swagger_server.controllers.ui_to_prioritization_controller
+    post:
+      tags:
+        - UI_to_Prioritization
+      summary: Create a new prioritization scheme
+      operationId: create_prioritization
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: x_access_token
+          in: header
+          description: Token that contains information about the user
+          required: true
+          type: string
+        - name: x_request_token
+          in: header
+          description: Token that associates messages with each other
+          required: true
+          type: string
+        - in: body
+          name: create_prioritization_data
+          description: Prioritization scheme to create
+          required: true
+          schema:
+            $ref: '#/definitions/create_prioritization_data'
+      responses:
+        '200':
+          description: 'OK, Created'
+          schema:
+            $ref: '#/definitions/create_prioritization_response'
+        '400':
+          description: Invalid Request
+        '401':
+          description: Global and Remote Flags Cannot Both be True
+        '405':
+          description: Cannot Create Prioritization Scheme
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+      x-swagger-router-controller: swagger_server.controllers.ui_to_prioritization_controller
+  '/priorities/{priority_scheme_id}':
+    put:
+      tags:
+        - UI_to_Prioritization
+      summary: Update an existing prioritization scheme
+      operationId: update_prioritization
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: priority_scheme_id
+          in: path
+          description: The id of the prioritization scheme
+          required: true
+          type: string
+        - name: x_access_token
+          in: header
+          description: Token that contains information about the user
+          required: true
+          type: string
+        - name: x_request_token
+          in: header
+          description: Token that associates messages with each other
+          required: true
+          type: string
+        - in: body
+          name: update_priority_data
+          description: Prioritization Scheme to update
+          required: true
+          schema:
+            $ref: '#/definitions/update_priority_data'
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/request_token'
+        '400':
+          description: Invalid Request
+        '404':
+          description: Prioritization Scheme Unavailable
+        '405':
+          description: Cannot Update Prioritization Scheme
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+      x-swagger-router-controller: swagger_server.controllers.ui_to_prioritization_controller
+  '/priorities/{priority_scheme_id}/projects/{project_id}':
+    get:
+      tags:
+        - UI_to_Prioritization
+      summary: Retrieve a specific prioritization scheme
+      operationId: get_prioritization
+      produces:
+        - application/json
+      parameters:
+        - name: priority_scheme_id
+          in: path
+          description: The id of the prioritization scheme
+          required: true
+          type: string
+        - name: project_id
+          in: path
+          description: The id of the project associated with this project
+          required: true
+          type: string
+        - name: x_access_token
+          in: header
+          description: Token that contains information about the user
+          required: true
+          type: string
+        - name: x_request_token
+          in: header
+          description: Token that associates messages with each other
+          required: true
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/priority_scheme_data'
+        '400':
+          description: Invalid Request
+        '404':
+          description: Prioritization Scheme Unavailable
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+      x-swagger-router-controller: swagger_server.controllers.ui_to_prioritization_controller
+    delete:
+      tags:
+        - UI_to_Prioritization
+      summary: Delete a specific prioritization scheme
+      operationId: delete_prioritization
+      consumes:
+        - application/json
+      parameters:
+        - name: priority_scheme_id
+          in: path
+          description: The id of the prioritization scheme
+          required: true
+          type: string
+        - name: project_id
+          in: path
+          description: The id of the project associated with this project
+          required: true
+          type: string
+        - name: x_access_token
+          in: header
+          description: Token that contains information about the user
+          required: true
+          type: string
+        - name: x_request_token
+          in: header
+          description: Token that associates messages with each other
+          required: true
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/inline_response_200_1'
+        '400':
+          description: Invalid Request
+        '405':
+          description: Cannot Delete Prioritization Scheme
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+      x-swagger-router-controller: swagger_server.controllers.ui_to_prioritization_controller
+  /packages:
+    get:
+      tags:
+        - DataHub_Server
+      summary: Retrieve a list of all available packages
+      operationId: list_packages
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: x_access_token
+          in: header
+          description: Token that contains information about the user
+          required: true
+          type: string
+        - name: x_request_token
+          in: header
+          description: Token that associates messages with each other
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Return a List of Available Packages
+          schema:
+            $ref: '#/definitions/list_packages_response'
+        '400':
+          description: Invalid Request
+        '404':
+          description: No Packages Available
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+    post:
+      tags:
+        - UI_to_DataHub
+      summary: >-
+        Create new instances of packages. This request will return the
+        package_ids that should be used by the UI Module for referencing these
+        packages within the DataHub.
+      operationId: create_packages
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: x_access_token
+          in: header
+          description: Token that contains information about the user
+          required: true
+          type: string
+        - name: x_request_token
+          in: header
+          description: Token that associates messages with each other
+          required: true
+          type: string
+        - in: body
+          name: packages_metadata_list
+          description: 'List of name, test_suite, description, and source file for packages'
+          required: true
+          schema:
+            $ref: '#/definitions/packages_metadata_list'
+      responses:
+        '200':
+          description: 'OK, Created'
+          schema:
+            $ref: '#/definitions/create_packages_response'
+        '206':
+          description: Unable to Create All Packages
+          schema:
+            $ref: '#/definitions/create_packages_response'
+        '400':
+          description: Unable to Create Packages
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+  '/packages/{package_id}':
+    get:
+      tags:
+        - DataHub_Server
+      summary: >-
+        Get an existing package from the DataHub Module. Send the package_id to
+        the DataHub to retrieve the package information stored. This function is
+        used to send information to the DataHub from the UI and Stats modules. 
+      operationId: get_package
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: x_access_token
+          in: header
+          description: Token that contains information about the user
+          required: true
+          type: string
+        - name: x_request_token
+          in: header
+          description: Token that associates messages with each other
+          required: true
+          type: string
+        - name: package_id
+          in: path
+          description: The id of the package to retrieve
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Return an Existing Package
+          schema:
+            $ref: '#/definitions/get_package_response'
+        '400':
+          description: Invalid Request
+        '404':
+          description: Package Unavailable
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+    delete:
+      tags:
+        - UI_to_DataHub
+      summary: >-
+        Delete a specific package from the DataHub by supplying the package_id
+        for the package to delete.
+      operationId: delete_package
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: x_access_token
+          in: header
+          description: Token that contains information about the user
+          required: true
+          type: string
+        - name: x_request_token
+          in: header
+          description: Token that associates messages with each other
+          required: true
+          type: string
+        - name: package_id
+          in: path
+          description: The id of the package to retrieve
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Package was Successfully Deleted
+          schema:
+            $ref: '#/definitions/request_token'
+        '400':
+          description: Invalid Request
+        '404':
+          description: Unable to Delete Package
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+    put:
+      tags:
+        - UI_to_DataHub
+      summary: >-
+        Modify a specific package from the DataHub by supplying the package_id
+        for the package to update.
+      operationId: edit_package
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: x_access_token
+          in: header
+          description: Token that contains information about the user
+          required: true
+          type: string
+        - name: x_request_token
+          in: header
+          description: Token that associates messages with each other
+          required: true
+          type: string
+        - name: package_id
+          in: path
+          description: The id of the package to retrieve
+          required: true
+          type: string
+        - name: edit_package
+          required: true
+          in: body
+          description: Package data to modify the existing package with
+          schema:
+            $ref: '#/definitions/edit_package'
+      responses:
+        '200':
+          description: Package was Successfully Updated
+          schema:
+            $ref: '#/definitions/edit_package_response'
+        '400':
+          description: Invalid Request
+        '404':
+          description: Unable to Update Package
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+  '/packages/{package_id}/alerts':
+    post:
+      tags:
+        - UI_to_DataHub
+      summary: >-
+        Upload alerts for a package. Upload new alerts to the DataHub to add to
+        a specific package.
+      operationId: send_alerts_for_package
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: x_access_token
+          in: header
+          description: Token that contains information about the user
+          required: true
+          type: string
+        - name: x_request_token
+          in: header
+          description: Token that associates messages with each other
+          required: true
+          type: string
+        - name: package_id
+          in: path
+          description: The id of the package to retrieve
+          required: true
+          type: string
+        - name: alerts
+          required: true
+          in: body
+          schema:
+            $ref: '#/definitions/upload_alerts'
+      responses:
+        '200':
+          description: Return the Alert Ids
+          schema:
+            $ref: '#/definitions/upload_alerts_response'
+        '400':
+          description: Unable to Upload Alerts
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+  /projects:
+    get:
+      tags:
+        - DataHub_Server
+      summary: Retrieve a list of all available projects
+      operationId: list_projects
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: x_access_token
+          in: header
+          description: Token that contains information about the user
+          required: true
+          type: string
+        - name: x_request_token
+          in: header
+          description: Token that associates messages with each other
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Return a List of Available Projects
+          schema:
+            $ref: '#/definitions/list_projects'
+        '400':
+          description: Invalid Request
+        '404':
+          description: No Projects Available
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+    post:
+      tags:
+        - UI_to_DataHub
+      summary: >-
+        Create new instances of a projects. Packages and taxonomies should be
+        uploaded to the DataHub prior to creating a project that uses them. This
+        request will return the project_ids that should be used by the UI Module
+        for referencing these projects within the DataHub.
+      operationId: create_projects
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: x_access_token
+          in: header
+          description: Token that contains information about the user
+          required: true
+          type: string
+        - name: x_request_token
+          in: header
+          description: Token that associates messages with each other
+          required: true
+          type: string
+        - in: body
+          name: multiple_project_data
+          description: Project Data to Create
+          required: true
+          schema:
+            $ref: '#/definitions/multiple_project_data'
+      responses:
+        '200':
+          description: 'OK, All Projects Were Created Successfully'
+          schema:
+            $ref: '#/definitions/create_projects_response'
+        '206':
+          description: Partial Creation Completed
+          schema:
+            $ref: '#/definitions/create_projects_response'
+        '400':
+          description: Unable to Create Projects
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+  '/projects/{project_id}':
+    delete:
+      tags:
+        - UI_to_DataHub
+      summary: >-
+        Delete a project from the DataHub Module. Send the project_id to the
+        DataHub to delete the project information stored.
+      operationId: delete_project
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: x_access_token
+          in: header
+          description: Token that contains information about the user
+          required: true
+          type: string
+        - name: x_request_token
+          in: header
+          description: Token that associates messages with each other
+          required: true
+          type: string
+        - name: project_id
+          in: path
+          description: The id of the project to retrieve
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Project was Successfully Deleted
+          schema:
+            $ref: '#/definitions/request_token'
+        '400':
+          description: Invalid Request
+        '404':
+          description: Project Unavailable
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+    put:
+      tags:
+        - UI_to_DataHub
+      summary: >-
+        Modify a specific project from the DataHub by supplying the project_id
+        for the project to update.
+      operationId: edit_project
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: x_access_token
+          in: header
+          description: Token that contains information about the user
+          required: true
+          type: string
+        - name: x_request_token
+          in: header
+          description: Token that associates messages with each other
+          required: true
+          type: string
+        - name: project_id
+          in: path
+          description: The id of the project to retrieve
+          required: true
+          type: string
+        - name: edit_project
+          in: body
+          required: true
+          description: Project data to modify the existing project with
+          schema:
+            $ref: '#/definitions/edit_project'
+      responses:
+        '200':
+          description: Package was Successfully Updated
+          schema:
+            $ref: '#/definitions/edit_project_response'
+        '400':
+          description: Invalid Request
+        '404':
+          description: Unable to Update Project
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+  '/projects/{project_id}/alerts':
+    get:
+      tags:
+        - DataHub_Server
+      summary: >-
+        Retrieve all of the alerts and meta-alerts for a specific project.
+        Request only the alerts and meta-alerts for a project in the DataHub.
+      operationId: get_alerts_for_project
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: x_access_token
+          in: header
+          description: Token that contains information about the user
+          required: true
+          type: string
+        - name: x_request_token
+          in: header
+          description: Token that associates messages with each other
+          required: true
+          type: string
+        - name: project_id
+          in: path
+          description: The id of the project
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Return the Alerts Associated with the Project
+          schema:
+            $ref: '#/definitions/get_alerts_response'
+        '400':
+          description: Invalid Request
+        '404':
+          description: Alerts Not Found
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+    post:
+      tags:
+        - UI_to_DataHub
+      summary: >-
+        Upload meta-alerts for a specific project. This method can also be used
+        to send only meta-alert determinations of an existing meta-alert to the
+        DataHub, which is  most useful when a project has an open adaptive
+        heuristic set.
+      operationId: send_meta_alert_determinations
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: x_access_token
+          in: header
+          description: Token that contains information about the user
+          required: true
+          type: string
+        - name: x_request_token
+          in: header
+          description: Token that associates messages with each other
+          required: true
+          type: string
+        - name: project_id
+          in: path
+          description: The id of the project
+          required: true
+          type: string
+        - name: meta_alerts
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/upload_meta_alerts'
+      responses:
+        '200':
+          description: Return the Meta-Alert IDs Associated with the Project
+          schema:
+            $ref: '#/definitions/upload_meta_alerts_response'
+        '400':
+          description: Unable to Upload Meta-Alerts
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+  /projects/retrieve:
+    post:
+      tags:
+        - DataHub_Server
+      summary: >-
+        Get projects from the DataHub. Send tool and taxonomy information the
+        stats module already has, along with projects it is requesting. This
+        way, a response from the DataHub can efficiently leave out taxonomies
+        and tools that the Stats Module already has info for.
+      operationId: get_projects
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: x_access_token
+          in: header
+          description: Token that contains information about the user
+          required: true
+          type: string
+        - name: x_request_token
+          in: header
+          description: Token that associates messages with each other
+          required: true
+          type: string
+        - in: body
+          name: projects_requested
+          description: >-
+            Tool and taxonomy information the requesting module already has,
+            along with projects it is requesting.
+          required: true
+          schema:
+            $ref: '#/definitions/projects_requested'
+      responses:
+        '200':
+          description: Return Existing Projects
+          schema:
+            $ref: '#/definitions/get_projects_response'
+        '400':
+          description: Invalid Request
+        '404':
+          description: Projects Unavailable
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+  /projects/adaptive_heuristics/close:
+    post:
+      tags:
+        - Stats_to_DataHub
+      summary: >-
+        Send a list of project_ids to implement the adaptive heuristic alert
+        forwarding close request on the DataHub. The request stops the
+        forwarding of project alerts to the Stats Module.
+      operationId: close_adaptive_heuristics
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: x_access_token
+          in: header
+          description: Token that contains information about the user
+          required: true
+          type: string
+        - name: x_request_token
+          in: header
+          description: Token that associates messages with each other
+          required: true
+          type: string
+        - in: body
+          name: project_ids
+          description: >-
+            Multiple project_ids to close adaptive heuristic alert forwarding
+            request
+          required: true
+          schema:
+            $ref: '#/definitions/project_ids'
+      responses:
+        '200':
+          description: Adaptive Heuristic Forwarding Successfully Closed
+          schema:
+            $ref: '#/definitions/adaptive_heuristic_close_response'
+        '206':
+          description: Some Error Occurred
+          schema:
+            $ref: '#/definitions/adaptive_heuristic_close_response'
+        '400':
+          description: Invalid Request
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+  /taxonomies:
+    get:
+      tags:
+        - DataHub_Server
+      summary: >-
+        Get a list of Taxonomies available in the Modules. This function is used
+        to send information to the DataHub from the UI and Stats modules.
+      operationId: get_taxonomies
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: x_access_token
+          in: header
+          description: Token that contains information about the user
+          required: true
+          type: string
+        - name: x_request_token
+          in: header
+          description: Token that associates messages with each other
+          required: true
+          type: string
+      responses:
+        '200':
+          description: 'Returns a list of taxonomy ids, names and versions.'
+          schema:
+            $ref: '#/definitions/taxonomy_response'
+        '400':
+          description: Invalid Request
+        '404':
+          description: Taxonomies Unavailable
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+  '/taxonomies/{taxonomy_id}':
+    get:
+      tags:
+        - DataHub_Server
+      summary: >-
+        Get data of a specific taxonomy based on the name and version. This
+        function is used to send information to the DataHub from the UI and
+        Stats modules.
+      operationId: get_taxonomy
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: x_access_token
+          in: header
+          description: Token that contains information about the user
+          required: true
+          type: string
+        - name: x_request_token
+          in: header
+          description: Token that associates messages with each other
+          required: true
+          type: string
+        - name: taxonomy_id
+          in: path
+          description: Taxonomy id to retrieve data
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Returns data for a specific taxonomy
+          schema:
+            $ref: '#/definitions/get_taxonomy_response'
+        '400':
+          description: Invalid Request
+        '404':
+          description: Taxonomy Unavailable
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+  /test_suites:
+    get:
+      tags:
+        - DataHub_Server
+      summary: >-
+        Get a list of Test Suite ids, names and versions that are available.
+        This function is used to send information to the DataHub from the UI and
+        Stats modules.
+      operationId: get_test_suite_list
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: x_access_token
+          in: header
+          description: Token that contains information about the user
+          required: true
+          type: string
+        - name: x_request_token
+          in: header
+          description: Token that associates messages with each other
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Returns a list of test suites
+          schema:
+            $ref: '#/definitions/test_suite_response'
+        '400':
+          description: Invalid Request
+        '404':
+          description: Test Suites Unavailable
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+    post:
+      tags:
+        - UI_to_DataHub
+      summary: Upload a Test Suite to the DataHub Module.
+      operationId: upload_test_suite
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: x_access_token
+          in: header
+          description: Token that contains information about the user
+          required: true
+          type: string
+        - name: x_request_token
+          in: header
+          description: Token that associates messages with each other
+          required: true
+          type: string
+        - in: body
+          name: test_suite_data
+          description: Test Suite information to upload
+          required: true
+          schema:
+            $ref: '#/definitions/test_suite_data'
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/test_suite_upload_response'
+        '400':
+          description: Unable to Upload Test Suite
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+  /tools:
+    get:
+      tags:
+        - DataHub_Server
+      summary: >-
+        Get a list of tool ids, versions and names available in the Module. This
+        function is used to send information to the DataHub from the UI and
+        Stats modules.
+      operationId: get_tool_list
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: x_access_token
+          in: header
+          description: Token that contains information about the user
+          required: true
+          type: string
+        - name: x_request_token
+          in: header
+          description: Token that associates messages with each other
+          required: true
+          type: string
+      responses:
+        '200':
+          description: 'Returns a list of tool id, version and name'
+          schema:
+            $ref: '#/definitions/tool_response'
+        '400':
+          description: Invalid Request
+        '404':
+          description: Tool Unavailable
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+    post:
+      tags:
+        - UI_to_DataHub
+      summary: >-
+        Upload new tool data to the Module. Returns a tool_id for future
+        referencing the tool in the DataHub Module.
+      operationId: upload_tool
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: x_access_token
+          in: header
+          description: Token that contains information about the user
+          required: true
+          type: string
+        - name: x_request_token
+          in: header
+          description: Token that associates messages with each other
+          required: true
+          type: string
+        - in: body
+          name: tool_data
+          description: Tool information to upload
+          required: true
+          schema:
+            $ref: '#/definitions/tool_data'
+      responses:
+        '200':
+          description: 'OK, Tool Successfully Uploaded'
+          schema:
+            $ref: '#/definitions/tool_upload_response'
+        '400':
+          description: Unable to Upload Tool Information
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+  '/tools/{tool_id}':
+    get:
+      tags:
+        - DataHub_Server
+      summary: >-
+        Get specific tool information from the DataHub Module. This function is
+        used to send information to the DataHub from the UI and Stats modules.
+      operationId: get_tool_data
+      produces:
+        - application/json
+      parameters:
+        - name: x_access_token
+          in: header
+          description: Token that contains information about the user
+          required: true
+          type: string
+        - name: x_request_token
+          in: header
+          description: Token that associates messages with each other
+          required: true
+          type: string
+        - name: tool_id
+          in: path
+          description: Tool id to retrieve data
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Returns data for a particular tool
+          schema:
+            $ref: '#/definitions/get_tool_response'
+        '400':
+          description: Invalid Request
+        '404':
+          description: Tool Information Unavailable
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+definitions:
+  access_token:
+    type: object
+    properties:
+      x_access_token:
+        type: string
+    xml:
+      name: access_token
+  adaptive_heuristic_close_response:
+    type: object
+    required:
+      - request_id
+    properties:
+      request_id:
+        type: string
+      project_status:
+        type: array
+        items:
+          $ref: '#/definitions/project_heuristic_message'
+    xml:
+      name: adaptive_heuristic_close_response
+  alert:
+    type: object
+    required:
+      - alert_id
+      - checker_id
+      - primary_message
+      - tool_id
+    properties:
+      alert_id:
+        type: string
+      tool_id:
+        type: string
+      checker_id:
+        type: string
+      primary_message:
+        $ref: '#/definitions/message'
+      more_messages:
+        type: array
+        items:
+          $ref: '#/definitions/secondary_message'
+    xml:
+      name: alert
+  alert_no_id:
+    type: object
+    required:
+      - checker_id
+      - primary_message
+      - tool_id
+    properties:
+      tool_id:
+        type: string
+      checker_id:
+        type: string
+      primary_message:
+        $ref: '#/definitions/message'
+      more_messages:
+        type: array
+        items:
+          $ref: '#/definitions/secondary_message'
+    xml:
+      name: alert_no_id
+  alert_updates_response:
+    type: object
+    properties:
+      project_id:
+        type: string
+      package_id:
+        type: string
+    xml:
+      name: alert_updates_response
+  analysis_results:
+    type: object
+    properties:
+      classifier_instance_id:
+        type: string
+      classifier_analysis:
+        type: object
+        additionalProperties: true
+    xml:
+      name: analysis_results
+  checker:
+    type: object
+    required:
+      - checker_id
+    properties:
+      checker_id:
+        type: string
+      checker_name:
+        type: string
+      conditions:
+        type: array
+        items:
+          $ref: '#/definitions/condition'
+    xml:
+      name: checker
+  classifier_instance:
+    type: object
+    required:
+      - classifier_id
+      - project_ids
+    properties:
+      classifier_id:
+        type: string
+      classifier_type:
+        type: string
+      classifier_instance_name:
+        type: string
+      project_ids:
+        type: array
+        items:
+          type: string
+      ahpo_id:
+        type: string
+      ahpo_data:
+        type: object
+        additionalProperties:
+          type: object
+      adaptive_heuristic_id:
+        type: string
+      adaptive_heuristic_parameters:
+        type: object
+        additionalProperties:
+          type: object
+    xml:
+      name: classifier_instance
+  classifier_instance_data:
+    type: object
+    required:
+      - project_id
+      - timestamp
+    properties:
+      project_id:
+        type: string
+        description: The id of the target project to run the classifier on
+      timestamp:
+        description: The current time
+        type: string
+        format: date-time
+    xml:
+      name: classifier_instance_data
+  classifier_results:
+    type: object
+    required:
+      - project_id
+      - probability_data
+    properties:
+      classifier_instance_id:
+        type: string
+      project_id:
+        description: ID of project in the target domain
+        type: string
+      probability_data:
+        type: array
+        items:
+          type: object
+          properties:
+            meta_alert_id:
+              type: string
+            probability:
+              type: number
+              format: double
+      classifier_analysis:
+        type: object
+        additionalProperties: true
+    xml:
+      name: classifier_results
+  close_adaptive_heuristics_response:
+    type: object
+    properties:
+      classifier_instance_id:
+        type: string
+      message:
+        type: string
+    xml:
+      name: close_adaptive_heuristics_response
+  condition:
+    type: object
+    required:
+      - condition_id
+      - title
+    properties:
+      condition_id:
+        type: string
+      condition_name:
+        type: string
+      title:
+        type: string
+      platform:
+        type: string
+    xml:
+      name: condition
+  create_classifier_response:
+    type: object
+    properties:
+      classifier_instance_id:
+        type: string
+      project_id:
+        type: string
+      analysis_messages:
+        description: >-
+          Additional information that will help to understand this classifier
+          instance's performance
+        type: object
+        additionalProperties: true
+    xml:
+      name: create_classifier_response
+  create_packages_response:
+    type: object
+    required:
+      - request_id
+    properties:
+      request_id:
+        type: string
+      packages:
+        type: array
+        items:
+          $ref: '#/definitions/package_response'
+    xml:
+      name: create_packages_response
+  create_prioritization_data:
+    type: object
+    required:
+      - formula
+      - is_global
+      - is_remote
+      - priority_scheme_name
+    properties:
+      priority_scheme_name:
+        type: string
+      project_ids:
+        type: array
+        items:
+          type: string
+      formula:
+        type: string
+      weighted_columns:
+        type: object
+        properties: {}
+      is_global:
+        type: boolean
+      is_remote:
+        type: boolean
+    xml:
+      name: create_prioritization_data
+  create_prioritization_response:
+    type: object
+    properties:
+      priority_scheme_id:
+        type: string
+      priority_scheme_name:
+        type: string
+      request_id:
+        type: string
+    xml:
+      name: create_prioritization_response
+  create_projects_response:
+    required:
+      - request_id
+    properties:
+      request_id:
+        type: string
+      projects:
+        type: array
+        items:
+          $ref: '#/definitions/project_response'
+    xml:
+      name: create_projects_response
+  determination:
+    type: object
+    properties:
+      flag_list:
+        type: array
+        items:
+          $ref: '#/definitions/determination_flag_list'
+      verdict_list:
+        type: array
+        items:
+          $ref: '#/definitions/determination_verdict_list'
+      ignored_list:
+        type: array
+        items:
+          $ref: '#/definitions/determination_ignored_list'
+      dead_list:
+        type: array
+        items:
+          $ref: '#/definitions/determination_dead_list'
+      inapplicable_environment_list:
+        type: array
+        items:
+          $ref: '#/definitions/determination_inapplicable_environment_list'
+      dangerous_construct_list:
+        type: array
+        items:
+          $ref: '#/definitions/determination_dangerous_construct_list'
+      notes_list:
+        type: array
+        items:
+          $ref: '#/definitions/determination_notes_list'
+    xml:
+      name: determination
+  determination_dangerous_construct_list:
+    properties:
+      dangerous_construct:
+        type: string
+      timestamp:
+        type: string
+        format: date-time
+    xml:
+      name: determination_dangerous_construct_list
+  determination_dead_list:
+    properties:
+      dead:
+        type: boolean
+      timestamp:
+        type: string
+        format: date-time
+    xml:
+      name: determination_dead_list
+  determination_flag_list:
+    properties:
+      flag:
+        type: boolean
+      timestamp:
+        type: string
+        format: date-time
+    xml:
+      name: determination_flag_list
+  determination_ignored_list:
+    properties:
+      ignored:
+        type: boolean
+      timestamp:
+        type: string
+        format: date-time
+    xml:
+      name: determination_ignored_list
+  determination_inapplicable_environment_list:
+    properties:
+      inapplicable_environment:
+        type: boolean
+      timestamp:
+        type: string
+        format: date-time
+    xml:
+      name: determination_inapplicable_environment_list
+  determination_notes_list:
+    properties:
+      notes:
+        type: string
+      timestamp:
+        type: string
+        format: date-time
+    xml:
+      name: determination_notes_list
+  determination_verdict_list:
+    properties:
+      verdict:
+        type: string
+      timestamp:
+        type: string
+        format: date-time
+    xml:
+      name: determination_verdict_list
+  edit_package:
+    properties:
+      package_name:
+        type: string
+      package_description:
+        type: string
+      tool_ids:
+        type: array
+        items:
+          type: string
+      alerts:
+        type: array
+        items:
+          $ref: '#/definitions/alert'
+    xml:
+      name: edit_package
+  edit_package_response:
+    properties:
+      request_id:
+        type: string
+      alert_mappings:
+        type: object
+        additionalProperties:
+          type: string
+      message:
+        type: string
+    xml:
+      name: edit_package_response
+  edit_project:
+    properties:
+      project_name:
+        type: string
+      project_description:
+        type: string
+      taxonomy_ids:
+        type: array
+        items:
+          type: string
+      meta_alerts:
+        type: array
+        items:
+          $ref: '#/definitions/meta_alert'
+    xml:
+      name: edit_project
+  edit_project_response:
+    properties:
+      request_id:
+        type: string
+      meta_alert_mappings:
+        type: object
+        additionalProperties:
+          type: string
+      message:
+        type: string
+  error:
+    required:
+      - code
+      - message
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
+    xml:
+      name: error
+  get_alerts_response:
+    xml:
+      name: get_alerts_response
+    allOf:
+      - $ref: '#/definitions/multiple_alerts'
+      - type: object
+        properties:
+          request_id:
+            type: string
+  get_package_response:
+    type: object
+    required:
+      - package
+      - request_id
+    properties:
+      request_id:
+        type: string
+      package:
+        $ref: '#/definitions/package'
+    xml:
+      name: get_package_response
+  get_projects_response:
+    properties:
+      request_id:
+        type: string
+      projects:
+        type: array
+        items:
+          $ref: '#/definitions/project'
+    xml:
+      name: get_projects_response
+  get_taxonomy_response:
+    properties:
+      request_id:
+        type: string
+      taxonomy:
+        $ref: '#/definitions/taxonomy'
+    xml:
+      name: get_taxonomy_response
+  get_tool_response:
+    properties:
+      request_id:
+        type: string
+      tool:
+        $ref: '#/definitions/tool'
+    xml:
+      name: get_tool_response
+  list_classifiers_response:
+    type: object
+    properties:
+      classifier_id:
+        type: string
+      classifier_name:
+        type: string
+      ahpos:
+        type: array
+        items:
+          type: object
+          properties:
+            ahpo_id:
+              type: string
+            ahpo_name:
+              type: string
+      adaptive_heuristics:
+        type: array
+        items:
+          type: object
+          properties:
+            adaptive_heuristic_id:
+              type: string
+            adaptive_heuristic_name:
+              type: string
+            adaptive_heuristic_parameters:
+              type: object
+              additionalProperties: true
+    xml:
+      name: list_classifier_response
+  list_packages_response:
+    type: object
+    required:
+      - request_id
+      - packages
+    properties:
+      request_id:
+        type: string
+      packages:
+        type: array
+        items:
+          $ref: '#/definitions/package_info'
+    xml:
+      name: list_packages_response
+  list_projects:
+    properties:
+      request_id:
+        type: string
+      projects:
+        type: array
+        items:
+          $ref: '#/definitions/project_info'
+    xml:
+      name: list_projects
+  login_credentials:
+    type: object
+    properties:
+      username:
+        type: string
+      password:
+        type: string
+    xml:
+      name: login_credentials
+  message:
+    type: object
+    required:
+      - filepath
+      - line_start
+    properties:
+      line_start:
+        type: integer
+      line_end:
+        type: integer
+      filepath:
+        type: string
+    xml:
+      name: message
+  meta_alert:
+    type: object
+    required:
+      - condition_id
+      - meta_alert_id
+    properties:
+      meta_alert_id:
+        type: string
+      alert_ids:
+        type: array
+        items:
+          type: string
+      filepath:
+        type: string
+      line_start:
+        type: integer
+      condition_id:
+        type: string
+      determination:
+        $ref: '#/definitions/determination'
+      verdict:
+        type: object
+        additionalProperties:
+          type: array
+          items:
+            type: string
+    xml:
+      name: meta_alert
+  meta_alert_no_id:
+    type: object
+    required:
+      - condition_id
+    properties:
+      alert_ids:
+        type: array
+        items:
+          type: string
+      condition_id:
+        type: string
+      filepath:
+        type: string
+      line_start:
+        type: integer
+      determination:
+        $ref: '#/definitions/determination'
+      verdict:
+        type: object
+        additionalProperties:
+          type: array
+          items:
+            type: string
+    xml:
+      name: meta_alert_no_id
+  multiple_alerts:
+    properties:
+      meta_alerts:
+        type: array
+        items:
+          $ref: '#/definitions/meta_alert'
+      alerts:
+        type: array
+        items:
+          $ref: '#/definitions/alert'
+    xml:
+      name: multiple_alerts
+  multiple_project_data:
+    xml:
+      name: multiple_project_data
+    type: array
+    items:
+      $ref: '#/definitions/project_metadata'
+  package:
+    properties:
+      package_id:
+        type: string
+      package_name:
+        type: string
+      package_description:
+        type: string
+      test_suite_id:
+        type: string
+      tools:
+        type: array
+        items:
+          $ref: '#/definitions/tool'
+      alerts:
+        type: array
+        items:
+          $ref: '#/definitions/alert'
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+  package_info:
+    type: object
+    required:
+      - package_description
+      - package_name
+    properties:
+      package_id:
+        type: string
+      package_name:
+        type: string
+      package_language:
+        type: string
+      language_versions:
+        type: array
+        items:
+          type: string
+      package_description:
+        type: string
+    xml:
+      name: package_info
+  package_metadata:
+    type: object
+    required:
+      - package_description
+      - package_language
+      - package_name
+    properties:
+      package_name:
+        type: string
+      package_description:
+        type: string
+        description: Description of the package
+      package_language:
+        type: string
+      language_versions:
+        type: array
+        items:
+          type: string
+      codesource_file:
+        type: string
+        format: binary
+        description: Source file to upload
+      codesource_url:
+        type: string
+        format: uri
+        description: Link to the source code
+      test_suite_id:
+        type: string
+        description: ID of the associated test suite
+      alerts:
+        type: array
+        items:
+          $ref: '#/definitions/alert_no_id'
+      tool_ids:
+        type: array
+        items:
+          type: string
+    xml:
+      name: package_metadata
+  package_response:
+    properties:
+      package_id:
+        type: string
+      package_name:
+        type: string
+      alert_mappings:
+        type: object
+        additionalProperties:
+          type: string
+      status_message:
+        type: string
+        description: >-
+          Message indicating whether the package was created. Expected Messages
+          include Created, Unable to Create Package, and Invalid Request.
+    xml:
+      name: package_response
+  packages_metadata_list:
+    xml:
+      name: packages_metadata_list
+    type: array
+    items:
+      $ref: '#/definitions/package_metadata'
+  packages_with_tool_data:
+    type: object
+    properties:
+      package_ids:
+        type: array
+        items:
+          type: string
+      tool_data:
+        type: object
+        properties:
+          tool_name:
+            type: string
+          tool_version:
+            type: string
+          tool_type:
+            type: string
+          checker_data:
+            type: array
+            items:
+              $ref: '#/definitions/stats_checker'
+          code_metrics_data:
+            type: object
+            additionalProperties: true
+    xml:
+      name: packages_with_tool_data
+  prioritization_list:
+    type: object
+    properties:
+      request_id:
+        type: string
+      priority_list:
+        type: array
+        items:
+          $ref: '#/definitions/prioritization_list_priority_list'
+    xml:
+      name: prioritization_list
+  prioritization_list_priority_list:
+    properties:
+      priority_scheme_id:
+        type: string
+      priority_scheme_name:
+        type: string
+    xml:
+      name: prioritization_list_priority_list
+  priority_scheme_data:
+    type: object
+    required:
+      - formula
+      - priority_scheme_name
+    properties:
+      priority_scheme_name:
+        type: string
+      formula:
+        type: string
+      weighted_columns:
+        type: object
+        properties: {}
+      is_global:
+        type: boolean
+      is_remote:
+        type: boolean
+      request_id:
+        type: string
+    xml:
+      name: priority_scheme_data
+  project:
+    properties:
+      project_id:
+        type: string
+      project_name:
+        type: string
+      project_description:
+        type: string
+      code_language:
+        type: string
+      package:
+        $ref: '#/definitions/package'
+      meta_alerts:
+        type: array
+        items:
+          $ref: '#/definitions/meta_alert'
+      existing_taxonomies:
+        type: array
+        items:
+          type: string
+      new_taxonomies:
+        type: array
+        items:
+          $ref: '#/definitions/taxonomy'
+    xml:
+      name: project
+  project_heuristic_message:
+    type: object
+    properties:
+      project_id:
+        type: string
+      project_updated:
+        type: boolean
+      status_message:
+        type: string
+    xml:
+      name: project_heuristic_message
+  project_ids:
+    type: array
+    items:
+      type: string
+  project_info:
+    properties:
+      project_id:
+        type: string
+      project_name:
+        type: string
+      project_description:
+        type: string
+      code_language:
+        type: string
+      package_id:
+        type: string
+    xml:
+      name: project_info
+  project_metadata:
+    type: object
+    required:
+      - package_ids
+      - project_description
+      - project_name
+    properties:
+      project_name:
+        type: string
+      project_description:
+        type: string
+      code_language:
+        type: string
+      package_id:
+        type: string
+      meta_alerts:
+        type: array
+        items:
+          $ref: '#/definitions/meta_alert_no_id'
+      taxonomy_ids:
+        type: array
+        items:
+          type: string
+    xml:
+      name: project_metadata
+  project_response:
+    properties:
+      project_id:
+        type: string
+      project_name:
+        type: string
+      meta_alert_mappings:
+        type: object
+        additionalProperties:
+          type: string
+      status_message:
+        type: string
+        description: >-
+          Message indicating whether the project was created. Expected Messages
+          include Created, Unable to Create Project, and Invalid Request.
+    xml:
+      name: project_response
+  projects_requested:
+    properties:
+      project_status:
+        type: array
+        items:
+          $ref: '#/definitions/projects_requested_project_status'
+      tool_taxonomies_present:
+        $ref: '#/definitions/tools_taxonomies_present'
+    xml:
+      name: projects_requested
+  projects_requested_project_status:
+    properties:
+      project_id:
+        type: string
+      set_adaptive_heuristic_open:
+        type: boolean
+  request_token:
+    required:
+      - request_id
+    properties:
+      request_id:
+        type: string
+        description: Id used to correlate messages with each other
+      message:
+        type: string
+    xml:
+      name: request_token
+  secondary_message:
+    xml:
+      name: secondary_message
+    allOf:
+      - $ref: '#/definitions/message'
+      - type: object
+        required:
+          - message_text
+        properties:
+          message_text:
+            type: string
+  stats_checker:
+    type: object
+    properties:
+      checker_id:
+        type: string
+      checker_name:
+        type: string
+      condition_ids:
+        type: array
+        items:
+          type: string
+    xml:
+      name: checker
+  taxonomy:
+    properties:
+      taxonomy_id:
+        type: string
+      taxonomy_name:
+        type: string
+        description: 'Name of the taxonomy, i.e., CERT or CWE'
+      conditions:
+        type: array
+        items:
+          $ref: '#/definitions/condition'
+      taxonomy_version:
+        type: string
+      taxonomy_fields:
+        type: object
+        description: 'Fields associated with this taxonomy, i.e., likelihood'
+        properties: {}
+    xml:
+      name: taxonomy
+  taxonomy_list:
+    type: object
+    required:
+      - taxonomy_id
+      - taxonomy_name
+      - taxonomy_version
+    properties:
+      taxonomy_id:
+        type: string
+      taxonomy_name:
+        type: string
+      taxonomy_version:
+        type: string
+    xml:
+      name: taxonomy_list
+  taxonomy_response:
+    type: object
+    properties:
+      request_id:
+        type: string
+      taxonomy_list:
+        type: array
+        items:
+          $ref: '#/definitions/taxonomy_list'
+    xml:
+      name: taxonomy_response
+  test_suite_data:
+    type: object
+    required:
+      - test_suite_name
+      - test_suite_version
+    properties:
+      test_suite_name:
+        type: string
+      test_suite_version:
+        type: string
+      metadata_files:
+        type: array
+        items:
+          type: string
+          format: binary
+      sourcefile:
+        type: string
+        format: binary
+      sourcefile_url:
+        type: string
+        format: uri
+      sourcefunction:
+        type: string
+        format: binary
+      sourcefunction_url:
+        type: string
+        format: uri
+      manifest_file:
+        type: string
+        format: binary
+      manifest_url:
+        type: string
+        format: uri
+        description: Link to download the associated manifest
+      use_license_file:
+        type: string
+        format: binary
+      author:
+        type: string
+    xml:
+      name: test_suite_data
+  test_suite_list:
+    type: object
+    required:
+      - test_suite_id
+      - test_suite_name
+      - test_suite_version
+    properties:
+      test_suite_id:
+        type: string
+      test_suite_name:
+        type: string
+      test_suite_version:
+        type: string
+    xml:
+      name: test_suite_list
+  test_suite_response:
+    type: object
+    properties:
+      request_id:
+        type: string
+      test_suite_list:
+        type: array
+        items:
+          $ref: '#/definitions/test_suite_list'
+    xml:
+      name: test_suite_response
+  test_suite_upload_response:
+    xml:
+      name: test_suite_upload_response
+    allOf:
+      - $ref: '#/definitions/test_suite_list'
+      - type: object
+        required:
+          - request_id
+        properties:
+          request_id:
+            type: string
+          status_message:
+            type: string
+  tool:
+    type: object
+    required:
+      - tool_id
+      - tool_name
+      - tool_version
+    properties:
+      tool_id:
+        type: string
+      tool_name:
+        type: string
+      tool_version:
+        type: string
+      category:
+        type: string
+      checker_data:
+        type: array
+        items:
+          $ref: '#/definitions/checker'
+      code_metrics_data:
+        type: object
+        properties: {}
+    xml:
+      name: tool
+  tool_data:
+    type: object
+    required:
+      - category
+      - tool_name
+      - tool_version
+    properties:
+      tool_name:
+        type: string
+      tool_version:
+        type: string
+      category:
+        type: string
+      checker_data:
+        type: array
+        items:
+          $ref: '#/definitions/checker'
+      code_metrics_data:
+        type: object
+        properties: {}
+    xml:
+      name: tool_data
+  tool_list:
+    type: object
+    required:
+      - tool_id
+      - tool_name
+      - tool_version
+    properties:
+      tool_id:
+        type: string
+      tool_name:
+        type: string
+      tool_version:
+        type: string
+    xml:
+      name: tool_list
+  tool_response:
+    type: object
+    required:
+      - request_id
+      - tool_list
+    properties:
+      request_id:
+        type: string
+      tool_list:
+        type: array
+        items:
+          $ref: '#/definitions/tool_list'
+    xml:
+      name: tool_response
+  tool_upload_response:
+    type: object
+    required:
+      - request_id
+      - tool_id
+    properties:
+      request_id:
+        type: string
+      tool_id:
+        type: string
+      tool_name:
+        type: string
+      tool_version:
+        type: string
+    xml:
+      name: tool_upload_response
+  tools_taxonomies_present:
+    type: object
+    properties:
+      tool_ids:
+        type: array
+        description: >-
+          List of tools already present at the source module (stats). The
+          destination module (DataHub) will use this list to avoid sending
+          duplicate tool information. 
+        items:
+          type: string
+      taxonomy_ids:
+        type: array
+        description: >-
+          List of taxonomies already present at the source module (stats). The
+          destination module (DataHub) will use this list to avoid sending
+          duplicate taxonomy information. 
+        items:
+          type: string
+    xml:
+      name: tools_taxonomies_present
+  update_priority_data:
+    type: object
+    required:
+      - priority_scheme_name
+      - update_project
+    properties:
+      update_project:
+        type: boolean
+      project_ids:
+        type: array
+        items:
+          type: string
+      priority_scheme_name:
+        type: string
+      formula:
+        type: string
+      weighted_columns:
+        type: object
+        properties: {}
+    xml:
+      name: update_priority_data
+  upload_alerts:
+    type: array
+    items:
+      type: object
+      properties:
+        alert_id:
+          type: string
+        tool_id:
+          type: string
+        checker_id:
+          type: string
+        primary_message:
+          $ref: '#/definitions/message'
+        more_messages:
+          type: array
+          items:
+            $ref: '#/definitions/secondary_message'
+    xml:
+      name: upload_alerts
+  upload_alerts_response:
+    properties:
+      request_id:
+        type: string
+        description: Id used to correlate messages with each other
+      alerts:
+        type: array
+        items:
+          type: object
+          properties:
+            alert_id:
+              type: string
+            primary_message:
+              $ref: '#/definitions/message'
+            checker_id:
+              type: string
+            message:
+              type: string
+    xml:
+      name: upload_alerts_response
+  upload_meta_alerts:
+    type: array
+    items:
+      type: object
+      properties:
+        meta_alert_id:
+          type: string
+        alert_ids:
+          type: array
+          items:
+            type: string
+        condition_id:
+          type: string
+        determination:
+          $ref: '#/definitions/determination'
+    xml:
+      name: upload_meta_alerts
+  upload_meta_alerts_response:
+    properties:
+      request_id:
+        type: string
+        description: Id used to correlate messages with each other
+      meta_alerts:
+        type: array
+        items:
+          type: object
+          properties:
+            alert_ids:
+              type: array
+              items:
+                type: string
+            condition_id:
+              type: string
+            meta_alert_id:
+              type: string
+            message:
+              type: string
+    xml:
+      name: upload_meta_alerts_response
+  user_information:
+    type: object
+    required:
+      - organization_name
+      - password
+      - username
+    properties:
+      first_name:
+        type: string
+      last_name:
+        type: string
+      organization_name:
+        type: string
+      username:
+        type: string
+      password:
+        type: string
+    xml:
+      name: user_information
