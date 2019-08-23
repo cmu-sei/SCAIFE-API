@@ -1,0 +1,399 @@
+swagger: '2.0'
+info:
+  description: >-
+    This API definition facilitates auditing static analysis alerts using
+    classifiers, optional adaptive heuristics, and alert prioritization. The API
+    enables jump-starting labeled datasets using test suites. It is intended to
+    enable a wide range of users (with widely varying datasets, static analysis
+    tools, machine learning expertise, and amount of labeled data) to benefit
+    from using classifiers and sophisticated prioritization to automatically
+    triage static analysis alerts.
+  version: 0.0.3
+  title: Rapid Models Prioritization Module API Definition
+  contact:
+    name: Rapid Models Project
+    url: >-
+      https://www.sei.cmu.edu/research-capabilities/all-work/display.cfm?customel_datapageid_4050=6453
+    email: lflynn@cert.org
+  license:
+    name: >-
+      Software Engineering Institute - Copyright (c) 2007-2019 Carnegie Mellon
+      University. All Rights Reserved.
+host: '127.0.0.1:8085'
+paths:
+  /status:
+    get:
+      tags:
+        - Prioritization_Server
+      summary:  Provides Server Status
+      operationId: get_status
+      produces:
+        - application/json
+      parameters:
+        - name: x_request_token
+          in: header
+          description: Token that associates messages with each other
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Server Is Running
+          schema:
+            $ref: '#/definitions/request_token'
+        '400':
+          description: Database Connection Lost
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+      x-swagger-router-controller: swagger_server.controllers.prioritization_server_controller
+  /priorities:
+    get:
+      tags:
+        - UI_to_Prioritization
+      summary: List all prioritization schemes
+      operationId: list_prioritizations
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: x_access_token
+          in: header
+          description: Token that contains information about the user
+          required: true
+          type: string
+        - name: x_request_token
+          in: header
+          description: Token that associates messages with each other
+          required: true
+          type: string
+        - name: project_id
+          in: header
+          description: ID of the project associated with the priority schemes in the list
+          required: false
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/prioritization_list'
+        '404':
+          description: Prioritization Schemes Not Found
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+      x-swagger-router-controller: swagger_server.controllers.ui_to_prioritization_controller
+    post:
+      tags:
+        - UI_to_Prioritization
+      summary: Create a new prioritization scheme
+      operationId: create_prioritization
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: x_access_token
+          in: header
+          description: Token that contains information about the user
+          required: true
+          type: string
+        - name: x_request_token
+          in: header
+          description: Token that associates messages with each other
+          required: true
+          type: string
+        - in: body
+          name: create_prioritization_data
+          description: Prioritization scheme to create
+          required: true
+          schema:
+            $ref: '#/definitions/create_prioritization_data'
+      responses:
+        '200':
+          description: 'OK, Created'
+          schema:
+            $ref: '#/definitions/create_prioritization_response'
+        '400':
+          description: Invalid Request
+        '401':
+          description: Global and Remote Flags Cannot Both be True
+        '405':
+          description: Cannot Create Prioritization Scheme
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+      x-swagger-router-controller: swagger_server.controllers.ui_to_prioritization_controller
+  '/priorities/{priority_scheme_id}':
+    put:
+      tags:
+        - UI_to_Prioritization
+      summary: Update an existing prioritization scheme
+      operationId: update_prioritization
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: priority_scheme_id
+          in: path
+          description: The id of the prioritization scheme
+          required: true
+          type: string
+        - name: x_access_token
+          in: header
+          description: Token that contains information about the user
+          required: true
+          type: string
+        - name: x_request_token
+          in: header
+          description: Token that associates messages with each other
+          required: true
+          type: string
+        - in: body
+          name: update_priority_data
+          description: Prioritization Scheme to update
+          required: true
+          schema:
+            $ref: '#/definitions/update_priority_data'
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/request_token'
+        '400':
+          description: Invalid Request
+        '404':
+          description: Prioritization Scheme Unavailable
+        '405':
+          description: Cannot Update Prioritization Scheme
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+      x-swagger-router-controller: swagger_server.controllers.ui_to_prioritization_controller
+  '/priorities/{priority_scheme_id}/projects/{project_id}':
+    get:
+      tags:
+        - UI_to_Prioritization
+      summary: Retrieve a specific prioritization scheme
+      operationId: get_prioritization
+      produces:
+        - application/json
+      parameters:
+        - name: priority_scheme_id
+          in: path
+          description: The id of the prioritization scheme
+          required: true
+          type: string
+        - name: project_id
+          in: path
+          description: The id of the project associated with this project
+          required: true
+          type: string
+        - name: x_access_token
+          in: header
+          description: Token that contains information about the user
+          required: true
+          type: string
+        - name: x_request_token
+          in: header
+          description: Token that associates messages with each other
+          required: true
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/priority_scheme_data'
+        '400':
+          description: Invalid Request
+        '404':
+          description: Prioritization Scheme Unavailable
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+      x-swagger-router-controller: swagger_server.controllers.ui_to_prioritization_controller
+    delete:
+      tags:
+        - UI_to_Prioritization
+      summary: Delete a specific prioritization scheme
+      operationId: delete_prioritization
+      consumes:
+        - application/json
+      parameters:
+        - name: priority_scheme_id
+          in: path
+          description: The id of the prioritization scheme
+          required: true
+          type: string
+        - name: project_id
+          in: path
+          description: The id of the project associated with this project
+          required: true
+          type: string
+        - name: x_access_token
+          in: header
+          description: Token that contains information about the user
+          required: true
+          type: string
+        - name: x_request_token
+          in: header
+          description: Token that associates messages with each other
+          required: true
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/request_token'
+        '400':
+          description: Invalid Request
+        '405':
+          description: Cannot Delete Prioritization Scheme
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+      x-swagger-router-controller: swagger_server.controllers.ui_to_prioritization_controller
+definitions:
+  prioritization_list:
+    type: object
+    properties:
+      request_id:
+        type: string
+      priority_list:
+        type: array
+        items:
+          $ref: '#/definitions/prioritization_list_priority_list'
+    example:
+      priority_list:
+        - priority_scheme_id: priority_scheme_id
+          priority_scheme_name: priority_scheme_name
+        - priority_scheme_id: priority_scheme_id
+          priority_scheme_name: priority_scheme_name
+      request_id: request_id
+    xml:
+      name: prioritization_list
+  create_prioritization_data:
+    type: object
+    required:
+      - formula
+      - is_global
+      - is_remote
+      - priority_scheme_name
+    properties:
+      priority_scheme_name:
+        type: string
+      project_ids:
+        type: array
+        items:
+          type: string
+      formula:
+        type: string
+      weighted_columns:
+        type: object
+        properties: {}
+      is_global:
+        type: boolean
+      is_remote:
+        type: boolean
+    xml:
+      name: create_prioritization_data
+  create_prioritization_response:
+    type: object
+    properties:
+      priority_scheme_id:
+        type: string
+      priority_scheme_name:
+        type: string
+      request_id:
+        type: string
+    example:
+      priority_scheme_id: priority_scheme_id
+      priority_scheme_name: priority_scheme_name
+      request_id: request_id
+    xml:
+      name: create_prioritization_response
+  update_priority_data:
+    type: object
+    required:
+      - priority_scheme_name
+      - update_project
+    properties:
+      update_project:
+        type: boolean
+      project_ids:
+        type: array
+        items:
+          type: string
+      priority_scheme_name:
+        type: string
+      formula:
+        type: string
+      weighted_columns:
+        type: object
+        properties: {}
+    xml:
+      name: update_priority_data
+  priority_scheme_data:
+    type: object
+    required:
+      - formula
+      - priority_scheme_name
+    properties:
+      priority_scheme_name:
+        type: string
+      formula:
+        type: string
+      weighted_columns:
+        type: object
+        properties: {}
+      is_global:
+        type: boolean
+      is_remote:
+        type: boolean
+      request_id:
+        type: string
+    example:
+      priority_scheme_name: priority_scheme_name
+      is_remote: true
+      formula: formula
+      is_global: true
+      request_id: request_id
+      weighted_columns: '{}'
+    xml:
+      name: priority_scheme_data
+  error:
+    required:
+      - code
+      - message
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
+    xml:
+      name: error
+  request_token:
+    properties:
+      request_id:
+        type: string
+      message:
+        type: string
+    example:
+      request_id: request_id
+      message: message
+  prioritization_list_priority_list:
+    properties:
+      priority_scheme_id:
+        type: string
+      priority_scheme_name:
+        type: string
+    example:
+      priority_scheme_id: priority_scheme_id
+      priority_scheme_name: priority_scheme_name

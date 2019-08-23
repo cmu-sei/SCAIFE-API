@@ -1,0 +1,4720 @@
+---
+swagger: "2.0"
+info:
+  description: "This API definition facilitates auditing static analysis alerts using\
+    \ classifiers, optional adaptive heuristics, and alert prioritization. The API\
+    \ enables jump-starting labeled datasets using test suites. It is intended to\
+    \ enable a wide range of users (with widely varying datasets, static analysis\
+    \ tools, machine learning expertise, and amount of labeled data) to benefit from\
+    \ using classifiers and sophisticated prioritization to automatically triage static\
+    \ analysis alerts."
+  version: "0.0.4"
+  title: "Rapid Models DataHub Module API Definition"
+  contact:
+    name: "Rapid Models Project"
+    url: "https://www.sei.cmu.edu/research-capabilities/all-work/display.cfm?customel_datapageid_4050=6453"
+    email: "lflynn@cert.org"
+  license:
+    name: "Software Engineering Institute - Copyright (c) 2007-2019 Carnegie Mellon\
+      \ University. All Rights Reserved."
+host: "127.0.0.1:8084"
+paths:
+  /status:
+    get:
+      tags:
+      - "DataHub_Server"
+      summary: "Provides Server Status"
+      operationId: "get_status"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "x_request_token"
+        in: "header"
+        description: "Token that associates messages with each other"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Server Is Running"
+          schema:
+            $ref: "#/definitions/request_token"
+        400:
+          description: "Database Connection Lost"
+        default:
+          description: "Unexpected Error"
+          schema:
+            $ref: "#/definitions/error"
+      x-swagger-router-controller: "swagger_server.controllers.data_hub_server_controller"
+  /languages:
+    get:
+      tags:
+      - "DataHub_Server"
+      summary: "Retrieve a list of all the available languages."
+      operationId: "list_languages"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "x_access_token"
+        in: "header"
+        description: "Token that contains information about the user"
+        required: true
+        type: "string"
+      - name: "x_request_token"
+        in: "header"
+        description: "Token that associates messages with each other"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Return a list of languages"
+          schema:
+            $ref: "#/definitions/list_languages_response"
+        400:
+          description: "Invalid Request"
+        404:
+          description: "No Languages Available"
+        default:
+          description: "Unexpected Error"
+          schema:
+            $ref: "#/definitions/error"
+      x-swagger-router-controller: "swagger_server.controllers.data_hub_server_controller"
+    post:
+      tags:
+      - "UI_to_DataHub"
+      summary: "Create a new language definition."
+      operationId: "create_language"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "x_access_token"
+        in: "header"
+        description: "Token that contains information about the user"
+        required: true
+        type: "string"
+      - name: "x_request_token"
+        in: "header"
+        description: "Token that associates messages with each other"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "language_definition"
+        description: "Language information"
+        required: true
+        schema:
+          $ref: "#/definitions/language_version"
+      responses:
+        200:
+          description: "Language Successfully Uploaded"
+          schema:
+            $ref: "#/definitions/create_language_response"
+        400:
+          description: "Invalid Request"
+        default:
+          description: "Unexpected Error"
+          schema:
+            $ref: "#/definitions/error"
+      x-swagger-router-controller: "swagger_server.controllers.ui_to_data_hub_controller"
+  /packages:
+    get:
+      tags:
+      - "DataHub_Server"
+      summary: "Retrieve a list of all available packages."
+      operationId: "list_packages"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "x_access_token"
+        in: "header"
+        description: "Token that contains information about the user"
+        required: true
+        type: "string"
+      - name: "x_request_token"
+        in: "header"
+        description: "Token that associates messages with each other"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Return a List of Available Packages"
+          schema:
+            $ref: "#/definitions/list_packages_response"
+        400:
+          description: "Invalid Request"
+        404:
+          description: "No Packages Available"
+        default:
+          description: "Unexpected Error"
+          schema:
+            $ref: "#/definitions/error"
+      x-swagger-router-controller: "swagger_server.controllers.data_hub_server_controller"
+    post:
+      tags:
+      - "UI_to_DataHub"
+      summary: "Create a new package. This request will return the package_id used\
+        \ to reference the package within the DataHub. Note, for metrics data uploads\
+        \ use PUT /tools/{tool_id}."
+      operationId: "create_package"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "x_access_token"
+        in: "header"
+        description: "Token that contains information about the user"
+        required: true
+        type: "string"
+      - name: "x_request_token"
+        in: "header"
+        description: "Token that associates messages with each other"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "package_metadata"
+        description: "Data to the create package"
+        required: true
+        schema:
+          $ref: "#/definitions/package_metadata"
+      responses:
+        200:
+          description: "Package Successfully Created"
+          schema:
+            $ref: "#/definitions/create_package_response"
+        400:
+          description: "Unable to Create Package"
+        default:
+          description: "Unexpected Error"
+          schema:
+            $ref: "#/definitions/error"
+      x-swagger-router-controller: "swagger_server.controllers.ui_to_data_hub_controller"
+  /packages/{package_id}:
+    get:
+      tags:
+      - "DataHub_Server"
+      summary: "Retrieve an existing package in the DataHub Module."
+      operationId: "get_package"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "x_access_token"
+        in: "header"
+        description: "Token that contains information about the user"
+        required: true
+        type: "string"
+      - name: "x_request_token"
+        in: "header"
+        description: "Token that associates messages with each other"
+        required: true
+        type: "string"
+      - name: "package_id"
+        in: "path"
+        description: "ID of the package to retrieve"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Return an Existing Package"
+          schema:
+            $ref: "#/definitions/get_package_response"
+        400:
+          description: "Invalid Request"
+        404:
+          description: "Package Unavailable"
+        default:
+          description: "Unexpected Error"
+          schema:
+            $ref: "#/definitions/error"
+      x-swagger-router-controller: "swagger_server.controllers.data_hub_server_controller"
+    post:
+      tags:
+      - "UI_to_DataHub"
+      summary: "Upload a Source Code Archive and MetaData Files for the Package."
+      operationId: "upload_codebase_for_package"
+      consumes:
+      - "application/json"
+      - "multipart/form-data"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "x_access_token"
+        in: "header"
+        description: "Token that contains information about the user"
+        required: true
+        type: "string"
+      - name: "x_request_token"
+        in: "header"
+        description: "Token that associates messages with each other"
+        required: true
+        type: "string"
+      - name: "package_id"
+        in: "path"
+        description: "ID of the package to update"
+        required: true
+        type: "string"
+      - name: "sourcecode_archive"
+        in: "formData"
+        description: "Source Code Archive for this package"
+        required: true
+        type: "file"
+      - name: "source_file_csv"
+        in: "formData"
+        description: "Source File CSV"
+        required: false
+        type: "file"
+      - name: "source_function_csv"
+        in: "formData"
+        description: "Source Function CSV"
+        required: false
+        type: "file"
+      responses:
+        200:
+          description: "Code Source Successfully Uploaded"
+          schema:
+            $ref: "#/definitions/request_token"
+        400:
+          description: "Invalid Request"
+        404:
+          description: "Unable to Upload Code Source Archive"
+        default:
+          description: "Unexpected Error"
+          schema:
+            $ref: "#/definitions/error"
+      x-swagger-router-controller: "swagger_server.controllers.ui_to_data_hub_controller"
+    put:
+      tags:
+      - "UI_to_DataHub"
+      summary: "Update an existing package. Use this method to add new alerts for\
+        \ the package. Note, for metrics data uploads use PUT /tools/{tool_id}."
+      operationId: "edit_package"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "x_access_token"
+        in: "header"
+        description: "Token that contains information about the user"
+        required: true
+        type: "string"
+      - name: "x_request_token"
+        in: "header"
+        description: "Token that associates messages with each other"
+        required: true
+        type: "string"
+      - name: "package_id"
+        in: "path"
+        description: "ID of the package to update"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "edit_package"
+        description: "Package data to modify the existing package with"
+        required: true
+        schema:
+          $ref: "#/definitions/edit_package"
+      responses:
+        200:
+          description: "Package Successfully Updated"
+          schema:
+            $ref: "#/definitions/edit_package_response"
+        400:
+          description: "Invalid Request"
+        404:
+          description: "Unable to Update Package"
+        default:
+          description: "Unexpected Error"
+          schema:
+            $ref: "#/definitions/error"
+      x-swagger-router-controller: "swagger_server.controllers.ui_to_data_hub_controller"
+    delete:
+      tags:
+      - "UI_to_DataHub"
+      summary: "Delete an existing package."
+      operationId: "delete_package"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "x_access_token"
+        in: "header"
+        description: "Token that contains information about the user"
+        required: true
+        type: "string"
+      - name: "x_request_token"
+        in: "header"
+        description: "Token that associates messages with each other"
+        required: true
+        type: "string"
+      - name: "package_id"
+        in: "path"
+        description: "ID of the package to delete"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Package Successfully Deleted"
+          schema:
+            $ref: "#/definitions/request_token"
+        400:
+          description: "Invalid Request"
+        404:
+          description: "Unable to Delete Package"
+        default:
+          description: "Unexpected Error"
+          schema:
+            $ref: "#/definitions/error"
+      x-swagger-router-controller: "swagger_server.controllers.ui_to_data_hub_controller"
+  /projects:
+    get:
+      tags:
+      - "DataHub_Server"
+      summary: "Retrieve a list of all available projects."
+      operationId: "list_projects"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "x_access_token"
+        in: "header"
+        description: "Token that contains information about the user"
+        required: true
+        type: "string"
+      - name: "x_request_token"
+        in: "header"
+        description: "Token that associates messages with each other"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Return a List of Available Projects"
+          schema:
+            $ref: "#/definitions/list_projects_response"
+        400:
+          description: "Invalid Request"
+        404:
+          description: "No Projects Available"
+        default:
+          description: "Unexpected Error"
+          schema:
+            $ref: "#/definitions/error"
+      x-swagger-router-controller: "swagger_server.controllers.data_hub_server_controller"
+    post:
+      tags:
+      - "UI_to_DataHub"
+      summary: "Create a new project. The package and taxonomies should be uploaded\
+        \ to the DataHub prior to creating a project. This request will return the\
+        \ project_id to reference the project within the DataHub."
+      operationId: "create_project"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "x_access_token"
+        in: "header"
+        description: "Token that contains information about the user"
+        required: true
+        type: "string"
+      - name: "x_request_token"
+        in: "header"
+        description: "Token that associates messages with each other"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "project_metadata"
+        description: "Data to a create project"
+        required: true
+        schema:
+          $ref: "#/definitions/project_metadata"
+      responses:
+        200:
+          description: "Project Successfully Created"
+          schema:
+            $ref: "#/definitions/create_project_response"
+        400:
+          description: "Unable to Create Project"
+        default:
+          description: "Unexpected Error"
+          schema:
+            $ref: "#/definitions/error"
+      x-swagger-router-controller: "swagger_server.controllers.ui_to_data_hub_controller"
+  /projects/{project_id}:
+    put:
+      tags:
+      - "UI_to_DataHub"
+      summary: "Update an existing project. This method can also be used to send only\
+        \ meta-alert determinations of an existing meta-alert to the DataHub, which\
+        \ is most useful when a project has an open adaptive heuristic set."
+      operationId: "edit_project"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "x_access_token"
+        in: "header"
+        description: "Token that contains information about the user"
+        required: true
+        type: "string"
+      - name: "x_request_token"
+        in: "header"
+        description: "Token that associates messages with each other"
+        required: true
+        type: "string"
+      - name: "project_id"
+        in: "path"
+        description: "The ID of the project to update"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "edit_project"
+        description: "Project data to modify the existing project with"
+        required: true
+        schema:
+          $ref: "#/definitions/edit_project"
+      responses:
+        200:
+          description: "Package was Successfully Updated"
+          schema:
+            $ref: "#/definitions/edit_project_response"
+        400:
+          description: "Invalid Request"
+        404:
+          description: "Unable to Update Project"
+        default:
+          description: "Unexpected Error"
+          schema:
+            $ref: "#/definitions/error"
+      x-swagger-router-controller: "swagger_server.controllers.ui_to_data_hub_controller"
+    delete:
+      tags:
+      - "UI_to_DataHub"
+      summary: "Delete an existing project."
+      operationId: "delete_project"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "x_access_token"
+        in: "header"
+        description: "Token that contains information about the user"
+        required: true
+        type: "string"
+      - name: "x_request_token"
+        in: "header"
+        description: "Token that associates messages with each other"
+        required: true
+        type: "string"
+      - name: "project_id"
+        in: "path"
+        description: "The ID of the project to delete"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Project Successfully Deleted"
+          schema:
+            $ref: "#/definitions/request_token"
+        400:
+          description: "Invalid Request"
+        404:
+          description: "Project Unavailable"
+        default:
+          description: "Unexpected Error"
+          schema:
+            $ref: "#/definitions/error"
+      x-swagger-router-controller: "swagger_server.controllers.ui_to_data_hub_controller"
+  /projects/{project_id}/alerts:
+    get:
+      tags:
+      - "DataHub_Server"
+      summary: "Retrieve only the alerts and meta-alerts for a specific project."
+      operationId: "get_alerts_for_project"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "x_access_token"
+        in: "header"
+        description: "Token that contains information about the user"
+        required: true
+        type: "string"
+      - name: "x_request_token"
+        in: "header"
+        description: "Token that associates messages with each other"
+        required: true
+        type: "string"
+      - name: "project_id"
+        in: "path"
+        description: "The ID of the project"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Return the Alerts and Meta-Alerts Associated with the Project"
+          schema:
+            $ref: "#/definitions/get_alerts_response"
+        400:
+          description: "Invalid Request"
+        404:
+          description: "Alerts and Meta-Alerts Unavailable"
+        default:
+          description: "Unexpected Error"
+          schema:
+            $ref: "#/definitions/error"
+      x-swagger-router-controller: "swagger_server.controllers.data_hub_server_controller"
+  /projects/retrieve:
+    post:
+      tags:
+      - "UI_to_DataHub"
+      summary: "Retrieve projects from the DataHub. Send taxonomy information the\
+        \ requestor already has, along with projects it is requesting. This way, a\
+        \ response from the DataHub can efficiently leave out taxonomies that the\
+        \ requestor already has information for."
+      operationId: "get_projects"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "x_access_token"
+        in: "header"
+        description: "Token that contains information about the user"
+        required: true
+        type: "string"
+      - name: "x_request_token"
+        in: "header"
+        description: "Token that associates messages with each other"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "projects_requested"
+        description: "Taxonomy information the requesting module already has, along\
+          \ with projects it is requesting."
+        required: true
+        schema:
+          $ref: "#/definitions/projects_requested"
+      responses:
+        200:
+          description: "Return Existing Projects"
+          schema:
+            $ref: "#/definitions/get_projects_response"
+        400:
+          description: "Invalid Request"
+        404:
+          description: "Projects Unavailable"
+        default:
+          description: "Unexpected Error"
+          schema:
+            $ref: "#/definitions/error"
+      x-swagger-router-controller: "swagger_server.controllers.ui_to_data_hub_controller"
+  /projects/classifiers/retrieve:
+    post:
+      tags:
+      - "Stats_to_DataHub"
+      summary: "Retrieve projects from the DataHub for Classification at the Stats\
+        \ Module"
+      operationId: "get_projects_for_classifier"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "x_access_token"
+        in: "header"
+        description: "Token that contains information about the user"
+        required: true
+        type: "string"
+      - name: "x_request_token"
+        in: "header"
+        description: "Token that associates messages with each other"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "classifier_projects_requested"
+        description: "Tool and taxonomy information the requesting module already\
+          \ has, along with projects it is requesting."
+        required: true
+        schema:
+          $ref: "#/definitions/classifier_projects_requested"
+      responses:
+        200:
+          description: "Return Existing Projects"
+          schema:
+            $ref: "#/definitions/get_projects_classifier_response"
+        400:
+          description: "Invalid Request"
+        404:
+          description: "Projects Unavailable"
+        default:
+          description: "Unexpected Error"
+          schema:
+            $ref: "#/definitions/error"
+      x-swagger-router-controller: "swagger_server.controllers.stats_to_data_hub_controller"
+  /projects/{project_id}/classifiers/hold:
+    post:
+      tags:
+      - "Stats_to_DataHub"
+      summary: "Place a temporary hold on the data forwarding request from the DataHub"
+      operationId: "hold_data_for_classifier"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "x_access_token"
+        in: "header"
+        description: "Token that contains information about the user"
+        required: true
+        type: "string"
+      - name: "x_request_token"
+        in: "header"
+        description: "Token that associates messages with each other"
+        required: true
+        type: "string"
+      - name: "project_id"
+        in: "path"
+        description: "The ID of the project"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "OK, Data Forwarding Temporarily Stopped"
+          schema:
+            $ref: "#/definitions/request_token"
+        400:
+          description: "Invalid Request"
+        404:
+          description: "Project Unavailable"
+        default:
+          description: "Unexpected Error"
+          schema:
+            $ref: "#/definitions/error"
+      x-swagger-router-controller: "swagger_server.controllers.stats_to_data_hub_controller"
+    put:
+      tags:
+      - "Stats_to_DataHub"
+      summary: "Remove the temporary hold on the data forwarding request from the\
+        \ DataHub"
+      operationId: "release_data_hold_for_classifier"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "x_access_token"
+        in: "header"
+        description: "Token that contains information about the user"
+        required: true
+        type: "string"
+      - name: "x_request_token"
+        in: "header"
+        description: "Token that associates messages with each other"
+        required: true
+        type: "string"
+      - name: "project_id"
+        in: "path"
+        description: "The ID of the project"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "OK, Data Forwarding Resumed"
+          schema:
+            $ref: "#/definitions/request_token"
+        400:
+          description: "Invalid Request"
+        404:
+          description: "Project Unavailable"
+        default:
+          description: "Unexpected Error"
+          schema:
+            $ref: "#/definitions/error"
+      x-swagger-router-controller: "swagger_server.controllers.stats_to_data_hub_controller"
+  /projects/adaptive_heuristics/close:
+    post:
+      tags:
+      - "Stats_to_DataHub"
+      summary: "Send a list of project_ids to stop forwarding the project's alerts\
+        \ to the Stats Module."
+      operationId: "close_adaptive_heuristics"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "x_access_token"
+        in: "header"
+        description: "Token that contains information about the user"
+        required: true
+        type: "string"
+      - name: "x_request_token"
+        in: "header"
+        description: "Token that associates messages with each other"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "project_ids"
+        description: "Multiple project_ids to close adaptive heuristic alert forwarding\
+          \ request"
+        required: true
+        schema:
+          $ref: "#/definitions/project_ids"
+      responses:
+        200:
+          description: "Adaptive Heuristic Forwarding Successfully Closed"
+          schema:
+            $ref: "#/definitions/adaptive_heuristic_close_response"
+        206:
+          description: "Some Error Occurred"
+          schema:
+            $ref: "#/definitions/adaptive_heuristic_close_response"
+        400:
+          description: "Invalid Request"
+        default:
+          description: "Unexpected Error"
+          schema:
+            $ref: "#/definitions/error"
+      x-swagger-router-controller: "swagger_server.controllers.stats_to_data_hub_controller"
+  /taxonomies:
+    get:
+      tags:
+      - "DataHub_Server"
+      summary: "Retrieve a list of available Taxonomies. "
+      operationId: "get_taxonomy_list"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "x_access_token"
+        in: "header"
+        description: "Token that contains information about the user"
+        required: true
+        type: "string"
+      - name: "x_request_token"
+        in: "header"
+        description: "Token that associates messages with each other"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Returns a list of taxonomy ids, names and versions."
+          schema:
+            $ref: "#/definitions/taxonomy_list_response"
+        400:
+          description: "Invalid Request"
+        404:
+          description: "Taxonomies Unavailable"
+        default:
+          description: "Unexpected Error"
+          schema:
+            $ref: "#/definitions/error"
+      x-swagger-router-controller: "swagger_server.controllers.data_hub_server_controller"
+    post:
+      tags:
+      - "UI_to_DataHub"
+      summary: "Upload a new taxonomy to the DataHub Module. Returns the taxonomy_id\
+        \ and condition_ids to reference this Taxonomy and its Conditions."
+      operationId: "create_taxonomy"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "x_access_token"
+        in: "header"
+        description: "Token that contains information about the user"
+        required: true
+        type: "string"
+      - name: "x_request_token"
+        in: "header"
+        description: "Token that associates messages with each other"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "taxonomy_metadata"
+        description: "Taxonomy information to upload"
+        required: true
+        schema:
+          $ref: "#/definitions/taxonomy_metadata"
+      responses:
+        200:
+          description: "OK, Taxonomy Successfully Created"
+          schema:
+            $ref: "#/definitions/create_taxonomy_response"
+        400:
+          description: "Unable to Create Taxonomy"
+        default:
+          description: "Unexpected Error"
+          schema:
+            $ref: "#/definitions/error"
+      x-swagger-router-controller: "swagger_server.controllers.ui_to_data_hub_controller"
+  /taxonomies/{taxonomy_id}:
+    get:
+      tags:
+      - "DataHub_Server"
+      summary: "Retrieve an existing taxonomy based on the name and version."
+      operationId: "get_taxonomy"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "x_access_token"
+        in: "header"
+        description: "Token that contains information about the user"
+        required: true
+        type: "string"
+      - name: "x_request_token"
+        in: "header"
+        description: "Token that associates messages with each other"
+        required: true
+        type: "string"
+      - name: "taxonomy_id"
+        in: "path"
+        description: "ID of the taxonomy to retrieve"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Returns data for a specific taxonomy"
+          schema:
+            $ref: "#/definitions/get_taxonomy_response"
+        400:
+          description: "Invalid Request"
+        404:
+          description: "Taxonomy Unavailable"
+        default:
+          description: "Unexpected Error"
+          schema:
+            $ref: "#/definitions/error"
+      x-swagger-router-controller: "swagger_server.controllers.data_hub_server_controller"
+  /test_suites:
+    get:
+      tags:
+      - "DataHub_Server"
+      summary: "Retrieve a list of Test Suite ids, names and versions that are available."
+      operationId: "get_test_suite_list"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "x_access_token"
+        in: "header"
+        description: "Token that contains information about the user"
+        required: true
+        type: "string"
+      - name: "x_request_token"
+        in: "header"
+        description: "Token that associates messages with each other"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Returns a list of test suites"
+          schema:
+            $ref: "#/definitions/test_suite_list_response"
+        400:
+          description: "Invalid Request"
+        404:
+          description: "Test Suites Unavailable"
+        default:
+          description: "Unexpected Error"
+          schema:
+            $ref: "#/definitions/error"
+      x-swagger-router-controller: "swagger_server.controllers.data_hub_server_controller"
+    post:
+      tags:
+      - "UI_to_DataHub"
+      summary: "Create a Test Suite in the DataHub Module."
+      operationId: "create_test_suite"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "x_access_token"
+        in: "header"
+        description: "Token that contains information about the user"
+        required: true
+        type: "string"
+      - name: "x_request_token"
+        in: "header"
+        description: "Token that associates messages with each other"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "test_suite_metadata"
+        description: "Test Suite information to upload"
+        required: true
+        schema:
+          $ref: "#/definitions/test_suite_metadata"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            $ref: "#/definitions/test_suite_upload_response"
+        400:
+          description: "Unable to Upload Test Suite"
+        default:
+          description: "Unexpected Error"
+          schema:
+            $ref: "#/definitions/error"
+      x-swagger-router-controller: "swagger_server.controllers.ui_to_data_hub_controller"
+  /test_suites/{test_suite_id}/packages/{package_id}:
+    post:
+      tags:
+      - "UI_to_DataHub"
+      summary: "Upload Test Suite MetaData Files"
+      operationId: "upload_test_suite"
+      consumes:
+      - "multipart/form-data"
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "x_access_token"
+        in: "header"
+        description: "Token that contains information about the user"
+        required: true
+        type: "string"
+      - name: "x_request_token"
+        in: "header"
+        description: "Token that associates messages with each other"
+        required: true
+        type: "string"
+      - name: "test_suite_id"
+        in: "path"
+        description: "Test Suite ID to upload data files"
+        required: true
+        type: "string"
+      - name: "package_id"
+        in: "path"
+        description: "Package ID to upload data files"
+        required: true
+        type: "string"
+      - name: "manifest_file"
+        in: "formData"
+        required: true
+        type: "file"
+      - name: "use_license_file"
+        in: "formData"
+        required: false
+        type: "file"
+      - name: "source_file_csv"
+        in: "formData"
+        description: "Source File CSV"
+        required: false
+        type: "file"
+      - name: "source_function_csv"
+        in: "formData"
+        description: "Source Function CSV"
+        required: false
+        type: "file"
+      responses:
+        200:
+          description: "Data Successfully Uploaded"
+          schema:
+            $ref: "#/definitions/request_token"
+        400:
+          description: "Invalid Request"
+        404:
+          description: "Unable to Upload MetaData Files"
+        default:
+          description: "Unexpected Error"
+          schema:
+            $ref: "#/definitions/error"
+      x-swagger-router-controller: "swagger_server.controllers.ui_to_data_hub_controller"
+  /tools:
+    get:
+      tags:
+      - "DataHub_Server"
+      summary: "Retrieve a list of tool ids, versions and names available in the Module."
+      operationId: "get_tool_list"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "x_access_token"
+        in: "header"
+        description: "Token that contains information about the user"
+        required: true
+        type: "string"
+      - name: "x_request_token"
+        in: "header"
+        description: "Token that associates messages with each other"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Returns a list of tool id, version and name"
+          schema:
+            $ref: "#/definitions/tool_list_response"
+        400:
+          description: "Invalid Request"
+        404:
+          description: "Tools Unavailable"
+        default:
+          description: "Unexpected Error"
+          schema:
+            $ref: "#/definitions/error"
+      x-swagger-router-controller: "swagger_server.controllers.data_hub_server_controller"
+    post:
+      tags:
+      - "UI_to_DataHub"
+      summary: "Upload a new Tool to the DataHub Module. Returns a tool_id to reference\
+        \ the tool in the DataHub Module. For code metrics tools, upload a list of\
+        \ ordered field names."
+      operationId: "upload_tool"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "x_access_token"
+        in: "header"
+        description: "Token that contains information about the user"
+        required: true
+        type: "string"
+      - name: "x_request_token"
+        in: "header"
+        description: "Token that associates messages with each other"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "tool_metadata"
+        description: "Tool information to upload"
+        required: true
+        schema:
+          $ref: "#/definitions/tool_metadata"
+      responses:
+        200:
+          description: "OK, Tool Successfully Uploaded"
+          schema:
+            $ref: "#/definitions/tool_upload_response"
+        400:
+          description: "Unable to Upload Tool Information"
+        default:
+          description: "Unexpected Error"
+          schema:
+            $ref: "#/definitions/error"
+      x-swagger-router-controller: "swagger_server.controllers.ui_to_data_hub_controller"
+  /tools/{tool_id}:
+    get:
+      tags:
+      - "DataHub_Server"
+      summary: "Retrieve an existing tool in the DataHub Module."
+      operationId: "get_tool_data"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "x_access_token"
+        in: "header"
+        description: "Token that contains information about the user"
+        required: true
+        type: "string"
+      - name: "x_request_token"
+        in: "header"
+        description: "Token that associates messages with each other"
+        required: true
+        type: "string"
+      - name: "tool_id"
+        in: "path"
+        description: "Tool ID to retrieve data"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Returns data for a particular tool"
+          schema:
+            $ref: "#/definitions/get_tool_response"
+        400:
+          description: "Invalid Request"
+        404:
+          description: "Tool Information Unavailable"
+        default:
+          description: "Unexpected Error"
+          schema:
+            $ref: "#/definitions/error"
+      x-swagger-router-controller: "swagger_server.controllers.data_hub_server_controller"
+    put:
+      tags:
+      - "UI_to_DataHub"
+      summary: "Update a tool with Checker-Mapping or Metrics CSVs"
+      operationId: "edit_tool"
+      consumes:
+      - "application/json"
+      - "multipart/form-data"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "x_access_token"
+        in: "header"
+        description: "Token that contains information about the user"
+        required: true
+        type: "string"
+      - name: "x_request_token"
+        in: "header"
+        description: "Token that associates messages with each other"
+        required: true
+        type: "string"
+      - name: "tool_id"
+        in: "path"
+        description: "Tool ID to update data"
+        required: true
+        type: "string"
+      - name: "checker_mapping_csv"
+        in: "formData"
+        description: "CSV with checker mappings, the filename should match the mapping_filename\
+          \ in tool_metadata"
+        required: false
+        type: "file"
+      - name: "metrics_tool_csv"
+        in: "formData"
+        description: "'Metrics Tool CSV to Upload, the filename should contain one\
+          \ of the following values\\: \\'lizard\\', \\'understand\\', or  \\'ccsm\\\
+          ''"
+        required: false
+        type: "file"
+      responses:
+        200:
+          description: "OK, Tool Successfully Updated"
+          schema:
+            $ref: "#/definitions/request_token"
+        400:
+          description: "Unable to Upload Checker or Metrics Information"
+        default:
+          description: "Unexpected Error"
+          schema:
+            $ref: "#/definitions/error"
+      x-swagger-router-controller: "swagger_server.controllers.ui_to_data_hub_controller"
+  /tools/{tool_id}/packages/{package_id}:
+    post:
+      tags:
+      - "UI_to_DataHub"
+      summary: "Upload Raw Tool Output"
+      operationId: "upload_tool_output"
+      consumes:
+      - "application/json"
+      - "multipart/form-data"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "x_access_token"
+        in: "header"
+        description: "Token that contains information about the user"
+        required: true
+        type: "string"
+      - name: "x_request_token"
+        in: "header"
+        description: "Token that associates messages with each other"
+        required: true
+        type: "string"
+      - name: "tool_id"
+        in: "path"
+        description: "Tool ID to upload data"
+        required: true
+        type: "string"
+      - name: "package_id"
+        in: "path"
+        description: "Package ID to upload data"
+        required: true
+        type: "string"
+      - name: "raw_tool_output"
+        in: "formData"
+        description: "Raw Tool Output to Upload to the DataHub"
+        required: true
+        type: "file"
+      responses:
+        200:
+          description: "OK, Tool Output Successfully Uploaded"
+          schema:
+            $ref: "#/definitions/request_token"
+        400:
+          description: "Unable to Upload Tool Output"
+        default:
+          description: "Unexpected Error"
+          schema:
+            $ref: "#/definitions/error"
+      x-swagger-router-controller: "swagger_server.controllers.ui_to_data_hub_controller"
+definitions:
+  adaptive_heuristic_close_response:
+    type: "object"
+    required:
+    - "project_status"
+    - "request_id"
+    properties:
+      request_id:
+        type: "string"
+      project_status:
+        type: "array"
+        items:
+          $ref: "#/definitions/project_heuristic_message"
+    example:
+      project_status:
+      - status_message: "status_message"
+        project_id: "project_id"
+        project_updated: true
+      - status_message: "status_message"
+        project_id: "project_id"
+        project_updated: true
+      request_id: "request_id"
+  alert_mappings:
+    type: "object"
+    required:
+    - "checker_id"
+    - "primary_message"
+    - "tool_id"
+    properties:
+      tool_id:
+        type: "string"
+      checker_id:
+        type: "string"
+      primary_message:
+        $ref: "#/definitions/message"
+    example:
+      primary_message:
+        filepath: "filepath"
+        line_start: 0
+        line_end: 6
+      tool_id: "tool_id"
+      checker_id: "checker_id"
+  alert_no_id:
+    type: "object"
+    required:
+    - "checker_id"
+    - "code_language"
+    - "primary_message"
+    - "tool_id"
+    properties:
+      tool_id:
+        type: "string"
+      checker_id:
+        type: "string"
+      code_language:
+        $ref: "#/definitions/language_version"
+      primary_message:
+        $ref: "#/definitions/message"
+      secondary_messages:
+        $ref: "#/definitions/secondary_messages"
+  alert_w_id:
+    type: "object"
+    required:
+    - "alert_id"
+    - "checker_id"
+    - "primary_message"
+    - "tool_id"
+    properties:
+      alert_id:
+        type: "string"
+      tool_id:
+        type: "string"
+      checker_id:
+        type: "string"
+      code_language_id:
+        type: "string"
+      primary_message:
+        $ref: "#/definitions/message"
+      secondary_messages:
+        $ref: "#/definitions/secondary_messages"
+    example:
+      code_language_id: "code_language_id"
+      alert_id: "alert_id"
+      primary_message:
+        filepath: "filepath"
+        line_start: 0
+        line_end: 6
+      tool_id: "tool_id"
+      checker_id: "checker_id"
+      secondary_messages: ""
+  checker_conditions:
+    type: "object"
+    properties:
+      checker_id:
+        type: "string"
+      checker_name:
+        type: "string"
+      conditions:
+        type: "array"
+        items:
+          $ref: "#/definitions/condition_map"
+    example:
+      checker_name: "checker_name"
+      checker_id: "checker_id"
+      conditions:
+      - taxonomy_id: "taxonomy_id"
+        code_language_ids:
+        - "code_language_ids"
+        - "code_language_ids"
+        condition_id: "condition_id"
+      - taxonomy_id: "taxonomy_id"
+        code_language_ids:
+        - "code_language_ids"
+        - "code_language_ids"
+        condition_id: "condition_id"
+  checker_mappings_metadata:
+    type: "object"
+    properties:
+      mapping_source:
+        type: "string"
+        description: "Source of the mapping, e.g., CERT wiki, scale.app, etc."
+      mapper_identity:
+        type: "array"
+        items:
+          type: "string"
+          description: "Mapper of the checker mappings, e.g., Vendor, Public, SC-Team,\
+            \ etc."
+      mapping_version:
+        type: "string"
+      publishable_public_or_not:
+        type: "boolean"
+      dod_publication:
+        type: "boolean"
+      deprecated_or_not:
+        type: "boolean"
+      license_information:
+        type: "string"
+      additional_notes:
+        type: "string"
+      description:
+        type: "string"
+      mapping_date:
+        type: "string"
+        format: "date-time"
+      mapping_filename:
+        type: "string"
+        description: "Filename of the mappings CSV that this data describes and will\
+          \ be uploaded in a subsequent call"
+      mappings:
+        type: "array"
+        items:
+          $ref: "#/definitions/checker_conditions"
+  classifier_package:
+    type: "object"
+    required:
+    - "created_at"
+    - "package_id"
+    - "package_name"
+    properties:
+      package_id:
+        type: "string"
+      package_name:
+        type: "string"
+      package_description:
+        type: "string"
+      code_languages:
+        $ref: "#/definitions/list_languages"
+      alerts:
+        $ref: "#/definitions/package_alerts_w_id"
+      test_suite_id:
+        type: "string"
+      tools:
+        type: "array"
+        items:
+          $ref: "#/definitions/get_tool"
+      sourcefiles:
+        type: "array"
+        items:
+          $ref: "#/definitions/sourcefile"
+      uploader_id:
+        type: "string"
+      uploader_organization_id:
+        type: "string"
+      created_at:
+        type: "string"
+        format: "date-time"
+      updated_at:
+        type: "string"
+        format: "date-time"
+    example:
+      alerts: ""
+      test_suite_id: "test_suite_id"
+      uploader_id: "uploader_id"
+      updated_at: "2000-01-23T04:56:07.000+00:00"
+      package_name: "package_name"
+      created_at: "2000-01-23T04:56:07.000+00:00"
+      package_id: "package_id"
+      tools:
+      - tool_name: "tool_name"
+        author_source: "author_source"
+        uploader_id: "uploader_id"
+        tool_version: "tool_version"
+        tool_id: "tool_id"
+        metrics_data_headers: "{}"
+        category: "category"
+        checker_mappings:
+        - checker_name: "checker_name"
+          checker_id: "checker_id"
+          conditions:
+          - taxonomy_id: "taxonomy_id"
+            code_language_ids:
+            - "code_language_ids"
+            - "code_language_ids"
+            condition_id: "condition_id"
+          - taxonomy_id: "taxonomy_id"
+            code_language_ids:
+            - "code_language_ids"
+            - "code_language_ids"
+            condition_id: "condition_id"
+        - checker_name: "checker_name"
+          checker_id: "checker_id"
+          conditions:
+          - taxonomy_id: "taxonomy_id"
+            code_language_ids:
+            - "code_language_ids"
+            - "code_language_ids"
+            condition_id: "condition_id"
+          - taxonomy_id: "taxonomy_id"
+            code_language_ids:
+            - "code_language_ids"
+            - "code_language_ids"
+            condition_id: "condition_id"
+        uploader_organization_id: "uploader_organization_id"
+      - tool_name: "tool_name"
+        author_source: "author_source"
+        uploader_id: "uploader_id"
+        tool_version: "tool_version"
+        tool_id: "tool_id"
+        metrics_data_headers: "{}"
+        category: "category"
+        checker_mappings:
+        - checker_name: "checker_name"
+          checker_id: "checker_id"
+          conditions:
+          - taxonomy_id: "taxonomy_id"
+            code_language_ids:
+            - "code_language_ids"
+            - "code_language_ids"
+            condition_id: "condition_id"
+          - taxonomy_id: "taxonomy_id"
+            code_language_ids:
+            - "code_language_ids"
+            - "code_language_ids"
+            condition_id: "condition_id"
+        - checker_name: "checker_name"
+          checker_id: "checker_id"
+          conditions:
+          - taxonomy_id: "taxonomy_id"
+            code_language_ids:
+            - "code_language_ids"
+            - "code_language_ids"
+            condition_id: "condition_id"
+          - taxonomy_id: "taxonomy_id"
+            code_language_ids:
+            - "code_language_ids"
+            - "code_language_ids"
+            condition_id: "condition_id"
+        uploader_organization_id: "uploader_organization_id"
+      uploader_organization_id: "uploader_organization_id"
+      sourcefiles:
+      - filepath_depth: "filepath_depth"
+        filename: "filename"
+        filepath: "filepath"
+        functions:
+        - code_metrics_data:
+          - null
+          - null
+          name: "name"
+          line_start: 0
+          line_end: 6
+        - code_metrics_data:
+          - null
+          - null
+          name: "name"
+          line_start: 0
+          line_end: 6
+        sourcefile_id: "sourcefile_id"
+        code_metrics_data:
+        - {}
+        - {}
+      - filepath_depth: "filepath_depth"
+        filename: "filename"
+        filepath: "filepath"
+        functions:
+        - code_metrics_data:
+          - null
+          - null
+          name: "name"
+          line_start: 0
+          line_end: 6
+        - code_metrics_data:
+          - null
+          - null
+          name: "name"
+          line_start: 0
+          line_end: 6
+        sourcefile_id: "sourcefile_id"
+        code_metrics_data:
+        - {}
+        - {}
+      package_description: "package_description"
+      code_languages: ""
+  classifier_project:
+    type: "object"
+    properties:
+      project_id:
+        type: "string"
+      project_name:
+        type: "string"
+      project_description:
+        type: "string"
+      package:
+        $ref: "#/definitions/classifier_package"
+      meta_alerts:
+        type: "array"
+        items:
+          $ref: "#/definitions/meta_alert_w_id"
+      taxonomies:
+        type: "array"
+        items:
+          $ref: "#/definitions/get_taxonomy"
+      uploader_id:
+        type: "string"
+      uploader_organization_id:
+        type: "string"
+      created_at:
+        type: "string"
+        format: "date-time"
+      updated_at:
+        type: "string"
+        format: "date-time"
+    example:
+      uploader_id: "uploader_id"
+      project_description: "project_description"
+      package:
+        alerts: ""
+        test_suite_id: "test_suite_id"
+        uploader_id: "uploader_id"
+        updated_at: "2000-01-23T04:56:07.000+00:00"
+        package_name: "package_name"
+        created_at: "2000-01-23T04:56:07.000+00:00"
+        package_id: "package_id"
+        tools:
+        - tool_name: "tool_name"
+          author_source: "author_source"
+          uploader_id: "uploader_id"
+          tool_version: "tool_version"
+          tool_id: "tool_id"
+          metrics_data_headers: "{}"
+          category: "category"
+          checker_mappings:
+          - checker_name: "checker_name"
+            checker_id: "checker_id"
+            conditions:
+            - taxonomy_id: "taxonomy_id"
+              code_language_ids:
+              - "code_language_ids"
+              - "code_language_ids"
+              condition_id: "condition_id"
+            - taxonomy_id: "taxonomy_id"
+              code_language_ids:
+              - "code_language_ids"
+              - "code_language_ids"
+              condition_id: "condition_id"
+          - checker_name: "checker_name"
+            checker_id: "checker_id"
+            conditions:
+            - taxonomy_id: "taxonomy_id"
+              code_language_ids:
+              - "code_language_ids"
+              - "code_language_ids"
+              condition_id: "condition_id"
+            - taxonomy_id: "taxonomy_id"
+              code_language_ids:
+              - "code_language_ids"
+              - "code_language_ids"
+              condition_id: "condition_id"
+          uploader_organization_id: "uploader_organization_id"
+        - tool_name: "tool_name"
+          author_source: "author_source"
+          uploader_id: "uploader_id"
+          tool_version: "tool_version"
+          tool_id: "tool_id"
+          metrics_data_headers: "{}"
+          category: "category"
+          checker_mappings:
+          - checker_name: "checker_name"
+            checker_id: "checker_id"
+            conditions:
+            - taxonomy_id: "taxonomy_id"
+              code_language_ids:
+              - "code_language_ids"
+              - "code_language_ids"
+              condition_id: "condition_id"
+            - taxonomy_id: "taxonomy_id"
+              code_language_ids:
+              - "code_language_ids"
+              - "code_language_ids"
+              condition_id: "condition_id"
+          - checker_name: "checker_name"
+            checker_id: "checker_id"
+            conditions:
+            - taxonomy_id: "taxonomy_id"
+              code_language_ids:
+              - "code_language_ids"
+              - "code_language_ids"
+              condition_id: "condition_id"
+            - taxonomy_id: "taxonomy_id"
+              code_language_ids:
+              - "code_language_ids"
+              - "code_language_ids"
+              condition_id: "condition_id"
+          uploader_organization_id: "uploader_organization_id"
+        uploader_organization_id: "uploader_organization_id"
+        sourcefiles:
+        - filepath_depth: "filepath_depth"
+          filename: "filename"
+          filepath: "filepath"
+          functions:
+          - code_metrics_data:
+            - null
+            - null
+            name: "name"
+            line_start: 0
+            line_end: 6
+          - code_metrics_data:
+            - null
+            - null
+            name: "name"
+            line_start: 0
+            line_end: 6
+          sourcefile_id: "sourcefile_id"
+          code_metrics_data:
+          - {}
+          - {}
+        - filepath_depth: "filepath_depth"
+          filename: "filename"
+          filepath: "filepath"
+          functions:
+          - code_metrics_data:
+            - null
+            - null
+            name: "name"
+            line_start: 0
+            line_end: 6
+          - code_metrics_data:
+            - null
+            - null
+            name: "name"
+            line_start: 0
+            line_end: 6
+          sourcefile_id: "sourcefile_id"
+          code_metrics_data:
+          - {}
+          - {}
+        package_description: "package_description"
+        code_languages: ""
+      meta_alerts:
+      - filepath: "filepath"
+        line_number: 0
+        determination:
+          flag_list:
+          - flag: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          - flag: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          inapplicable_environment_list:
+          - inapplicable_environment: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          - inapplicable_environment: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          ignored_list:
+          - ignored: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          - ignored: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          verdict_list:
+          - verdict: "verdict"
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          - verdict: "verdict"
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          dead_list:
+          - dead: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          - dead: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          dangerous_construct_list:
+          - dangerous_construct: "dangerous_construct"
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          - dangerous_construct: "dangerous_construct"
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          notes_list:
+          - notes: "notes"
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          - notes: "notes"
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+        meta_alert_id: "meta_alert_id"
+        condition_id: "condition_id"
+        alert_ids:
+        - "alert_ids"
+        - "alert_ids"
+        auto_verdict:
+          key: "auto_verdict"
+      - filepath: "filepath"
+        line_number: 0
+        determination:
+          flag_list:
+          - flag: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          - flag: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          inapplicable_environment_list:
+          - inapplicable_environment: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          - inapplicable_environment: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          ignored_list:
+          - ignored: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          - ignored: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          verdict_list:
+          - verdict: "verdict"
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          - verdict: "verdict"
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          dead_list:
+          - dead: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          - dead: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          dangerous_construct_list:
+          - dangerous_construct: "dangerous_construct"
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          - dangerous_construct: "dangerous_construct"
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          notes_list:
+          - notes: "notes"
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          - notes: "notes"
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+        meta_alert_id: "meta_alert_id"
+        condition_id: "condition_id"
+        alert_ids:
+        - "alert_ids"
+        - "alert_ids"
+        auto_verdict:
+          key: "auto_verdict"
+      updated_at: "2000-01-23T04:56:07.000+00:00"
+      project_id: "project_id"
+      taxonomies:
+      - taxonomy_id: "taxonomy_id"
+        taxonomy_version: "taxonomy_version"
+        description: "description"
+        conditions:
+        - code_language_ids:
+          - "code_language_ids"
+          - "code_language_ids"
+          condition_fields: "{}"
+          condition_name: "condition_name"
+          title: "title"
+          condition_id: "condition_id"
+          platforms:
+          - "platforms"
+          - "platforms"
+        - code_language_ids:
+          - "code_language_ids"
+          - "code_language_ids"
+          condition_fields: "{}"
+          condition_name: "condition_name"
+          title: "title"
+          condition_id: "condition_id"
+          platforms:
+          - "platforms"
+          - "platforms"
+        taxonomy_name: "taxonomy_name"
+      - taxonomy_id: "taxonomy_id"
+        taxonomy_version: "taxonomy_version"
+        description: "description"
+        conditions:
+        - code_language_ids:
+          - "code_language_ids"
+          - "code_language_ids"
+          condition_fields: "{}"
+          condition_name: "condition_name"
+          title: "title"
+          condition_id: "condition_id"
+          platforms:
+          - "platforms"
+          - "platforms"
+        - code_language_ids:
+          - "code_language_ids"
+          - "code_language_ids"
+          condition_fields: "{}"
+          condition_name: "condition_name"
+          title: "title"
+          condition_id: "condition_id"
+          platforms:
+          - "platforms"
+          - "platforms"
+        taxonomy_name: "taxonomy_name"
+      created_at: "2000-01-23T04:56:07.000+00:00"
+      project_name: "project_name"
+      uploader_organization_id: "uploader_organization_id"
+  classifier_projects_requested:
+    type: "object"
+    required:
+    - "project_status"
+    properties:
+      tool_taxonomies_present:
+        $ref: "#/definitions/tool_taxonomies_present"
+      project_status:
+        type: "array"
+        items:
+          $ref: "#/definitions/project_status"
+  condition:
+    type: "object"
+    required:
+    - "condition_name"
+    - "title"
+    properties:
+      code_language_ids:
+        type: "array"
+        items:
+          type: "string"
+      condition_name:
+        type: "string"
+      title:
+        type: "string"
+      platforms:
+        type: "array"
+        items:
+          type: "string"
+      condition_fields:
+        type: "object"
+        description: "Fields associated with this condition, i.e., likelihood"
+        properties: {}
+  condition_heading:
+    type: "object"
+    properties:
+      condition_id:
+        type: "string"
+      condition_name:
+        type: "string"
+      title:
+        type: "string"
+    example:
+      condition_name: "condition_name"
+      title: "title"
+      condition_id: "condition_id"
+  condition_map:
+    type: "object"
+    required:
+    - "condition_id"
+    properties:
+      taxonomy_id:
+        type: "string"
+      condition_id:
+        type: "string"
+      code_language_ids:
+        type: "array"
+        items:
+          type: "string"
+    example:
+      taxonomy_id: "taxonomy_id"
+      code_language_ids:
+      - "code_language_ids"
+      - "code_language_ids"
+      condition_id: "condition_id"
+  condition_response:
+    type: "object"
+    required:
+    - "condition_id"
+    - "condition_name"
+    - "title"
+    properties:
+      condition_id:
+        type: "string"
+      code_language_ids:
+        type: "array"
+        items:
+          type: "string"
+      condition_name:
+        type: "string"
+      title:
+        type: "string"
+      platforms:
+        type: "array"
+        items:
+          type: "string"
+      condition_fields:
+        type: "object"
+        description: "Fields associated with this condition, i.e., likelihood"
+        properties: {}
+    example:
+      code_language_ids:
+      - "code_language_ids"
+      - "code_language_ids"
+      condition_fields: "{}"
+      condition_name: "condition_name"
+      title: "title"
+      condition_id: "condition_id"
+      platforms:
+      - "platforms"
+      - "platforms"
+  create_language_response:
+    type: "object"
+    properties:
+      request_id:
+        type: "string"
+      language:
+        $ref: "#/definitions/language_version_w_id"
+    example:
+      language:
+        language: "language"
+        code_language_id: "language_id"
+        version: "version"
+      request_id: "request_id"
+  create_package_response:
+    type: "object"
+    required:
+    - "package"
+    - "request_id"
+    properties:
+      request_id:
+        type: "string"
+      package:
+        $ref: "#/definitions/created_package"
+      status_message:
+        type: "array"
+        description: "Messages indicating the status of the package upload."
+        items:
+          type: "string"
+    example:
+      status_message:
+      - "status_message"
+      - "status_message"
+      package:
+        package_name: "package_name"
+        alert_mappings:
+          key:
+            primary_message:
+              filepath: "filepath"
+              line_start: 0
+              line_end: 6
+            tool_id: "tool_id"
+            checker_id: "checker_id"
+        package_id: "package_id"
+      request_id: "request_id"
+  create_project_response:
+    type: "object"
+    required:
+    - "project"
+    - "request_id"
+    properties:
+      request_id:
+        type: "string"
+      project:
+        $ref: "#/definitions/created_project"
+      status_message:
+        type: "array"
+        description: "Messages indicating the status of the package upload."
+        items:
+          type: "string"
+    example:
+      status_message:
+      - "status_message"
+      - "status_message"
+      project:
+        project_id: "project_id"
+        meta_alert_mappings:
+          key:
+            filepath: "filepath"
+            line_number: 0
+            condition_id: "condition_id"
+        project_name: "project_name"
+      request_id: "request_id"
+  created_package:
+    type: "object"
+    required:
+    - "package_id"
+    - "package_name"
+    properties:
+      package_id:
+        type: "string"
+      package_name:
+        type: "string"
+      alert_mappings:
+        type: "object"
+        description: "Alert IDs created in the DataHub"
+        additionalProperties:
+          $ref: "#/definitions/alert_mappings"
+    example:
+      package_name: "package_name"
+      alert_mappings:
+        key:
+          primary_message:
+            filepath: "filepath"
+            line_start: 0
+            line_end: 6
+          tool_id: "tool_id"
+          checker_id: "checker_id"
+      package_id: "package_id"
+  created_project:
+    type: "object"
+    required:
+    - "project_id"
+    - "project_name"
+    properties:
+      project_id:
+        type: "string"
+      project_name:
+        type: "string"
+      meta_alert_mappings:
+        type: "object"
+        description: "Meta-Alert IDs created in the DataHub"
+        additionalProperties:
+          $ref: "#/definitions/meta_alert_mappings"
+    example:
+      project_id: "project_id"
+      meta_alert_mappings:
+        key:
+          filepath: "filepath"
+          line_number: 0
+          condition_id: "condition_id"
+      project_name: "project_name"
+  create_taxonomy:
+    type: "object"
+    required:
+    - "conditions"
+    - "taxonomy_id"
+    properties:
+      taxonomy_id:
+        type: "string"
+      conditions:
+        type: "array"
+        items:
+          $ref: "#/definitions/condition_heading"
+    example:
+      taxonomy_id: "taxonomy_id"
+      conditions:
+      - condition_name: "condition_name"
+        title: "title"
+        condition_id: "condition_id"
+      - condition_name: "condition_name"
+        title: "title"
+        condition_id: "condition_id"
+  create_taxonomy_response:
+    type: "object"
+    properties:
+      request_id:
+        type: "string"
+      taxonomy:
+        $ref: "#/definitions/create_taxonomy"
+    example:
+      taxonomy:
+        taxonomy_id: "taxonomy_id"
+        conditions:
+        - condition_name: "condition_name"
+          title: "title"
+          condition_id: "condition_id"
+        - condition_name: "condition_name"
+          title: "title"
+          condition_id: "condition_id"
+      request_id: "request_id"
+  determination:
+    type: "object"
+    properties:
+      flag_list:
+        type: "array"
+        items:
+          $ref: "#/definitions/determination_flag_list"
+      verdict_list:
+        type: "array"
+        items:
+          $ref: "#/definitions/determination_verdict_list"
+      ignored_list:
+        type: "array"
+        items:
+          $ref: "#/definitions/determination_ignored_list"
+      dead_list:
+        type: "array"
+        items:
+          $ref: "#/definitions/determination_dead_list"
+      inapplicable_environment_list:
+        type: "array"
+        items:
+          $ref: "#/definitions/determination_inapplicable_environment_list"
+      dangerous_construct_list:
+        type: "array"
+        items:
+          $ref: "#/definitions/determination_dangerous_construct_list"
+      notes_list:
+        type: "array"
+        items:
+          $ref: "#/definitions/determination_notes_list"
+    example:
+      flag_list:
+      - flag: true
+        timestamp: "2000-01-23T04:56:07.000+00:00"
+      - flag: true
+        timestamp: "2000-01-23T04:56:07.000+00:00"
+      inapplicable_environment_list:
+      - inapplicable_environment: true
+        timestamp: "2000-01-23T04:56:07.000+00:00"
+      - inapplicable_environment: true
+        timestamp: "2000-01-23T04:56:07.000+00:00"
+      ignored_list:
+      - ignored: true
+        timestamp: "2000-01-23T04:56:07.000+00:00"
+      - ignored: true
+        timestamp: "2000-01-23T04:56:07.000+00:00"
+      verdict_list:
+      - verdict: "verdict"
+        timestamp: "2000-01-23T04:56:07.000+00:00"
+      - verdict: "verdict"
+        timestamp: "2000-01-23T04:56:07.000+00:00"
+      dead_list:
+      - dead: true
+        timestamp: "2000-01-23T04:56:07.000+00:00"
+      - dead: true
+        timestamp: "2000-01-23T04:56:07.000+00:00"
+      dangerous_construct_list:
+      - dangerous_construct: "dangerous_construct"
+        timestamp: "2000-01-23T04:56:07.000+00:00"
+      - dangerous_construct: "dangerous_construct"
+        timestamp: "2000-01-23T04:56:07.000+00:00"
+      notes_list:
+      - notes: "notes"
+        timestamp: "2000-01-23T04:56:07.000+00:00"
+      - notes: "notes"
+        timestamp: "2000-01-23T04:56:07.000+00:00"
+  determination_dangerous_construct_list:
+    type: "object"
+    properties:
+      dangerous_construct:
+        type: "string"
+      timestamp:
+        type: "string"
+        format: "date-time"
+    example:
+      dangerous_construct: "dangerous_construct"
+      timestamp: "2000-01-23T04:56:07.000+00:00"
+  determination_dead_list:
+    type: "object"
+    properties:
+      dead:
+        type: "boolean"
+      timestamp:
+        type: "string"
+        format: "date-time"
+    example:
+      dead: true
+      timestamp: "2000-01-23T04:56:07.000+00:00"
+  determination_flag_list:
+    type: "object"
+    properties:
+      flag:
+        type: "boolean"
+      timestamp:
+        type: "string"
+        format: "date-time"
+    example:
+      flag: true
+      timestamp: "2000-01-23T04:56:07.000+00:00"
+  determination_ignored_list:
+    type: "object"
+    properties:
+      ignored:
+        type: "boolean"
+      timestamp:
+        type: "string"
+        format: "date-time"
+    example:
+      ignored: true
+      timestamp: "2000-01-23T04:56:07.000+00:00"
+  determination_inapplicable_environment_list:
+    type: "object"
+    properties:
+      inapplicable_environment:
+        type: "boolean"
+      timestamp:
+        type: "string"
+        format: "date-time"
+    example:
+      inapplicable_environment: true
+      timestamp: "2000-01-23T04:56:07.000+00:00"
+  determination_notes_list:
+    type: "object"
+    properties:
+      notes:
+        type: "string"
+      timestamp:
+        type: "string"
+        format: "date-time"
+    example:
+      notes: "notes"
+      timestamp: "2000-01-23T04:56:07.000+00:00"
+  determination_verdict_list:
+    type: "object"
+    properties:
+      verdict:
+        type: "string"
+      timestamp:
+        type: "string"
+        format: "date-time"
+    example:
+      verdict: "verdict"
+      timestamp: "2000-01-23T04:56:07.000+00:00"
+  edit_package:
+    type: "object"
+    properties:
+      package_name:
+        type: "string"
+      package_description:
+        type: "string"
+      tool_ids:
+        type: "string"
+        description: "List of new tools for this package"
+      alerts:
+        $ref: "#/definitions/package_alerts"
+  edit_package_response:
+    type: "object"
+    required:
+    - "package_id"
+    - "request_id"
+    - "status_message"
+    properties:
+      request_id:
+        type: "string"
+      package_id:
+        type: "string"
+      alert_mappings:
+        type: "object"
+        additionalProperties:
+          $ref: "#/definitions/alert_mappings"
+      status_message:
+        type: "string"
+    example:
+      status_message: "status_message"
+      alert_mappings:
+        key:
+          primary_message:
+            filepath: "filepath"
+            line_start: 0
+            line_end: 6
+          tool_id: "tool_id"
+          checker_id: "checker_id"
+      package_id: "package_id"
+      request_id: "request_id"
+  edit_project:
+    type: "object"
+    properties:
+      project_name:
+        type: "string"
+      project_description:
+        type: "string"
+      taxonomy_ids:
+        type: "array"
+        description: "List of new taxonomies for this project"
+        items:
+          type: "string"
+      meta_alerts:
+        type: "array"
+        items:
+          $ref: "#/definitions/project_meta_alerts"
+  edit_project_response:
+    type: "object"
+    required:
+    - "project_id"
+    - "request_id"
+    - "status_message"
+    properties:
+      request_id:
+        type: "string"
+      project_id:
+        type: "string"
+      meta_alert_mappings:
+        type: "object"
+        additionalProperties:
+          $ref: "#/definitions/meta_alert_mappings"
+      status_message:
+        type: "string"
+    example:
+      status_message: "status_message"
+      project_id: "project_id"
+      meta_alert_mappings:
+        key:
+          filepath: "filepath"
+          line_number: 0
+          condition_id: "condition_id"
+      request_id: "request_id"
+  error:
+    type: "object"
+    required:
+    - "code"
+    - "message"
+    properties:
+      code:
+        type: "integer"
+      message:
+        type: "string"
+  get_alerts_response:
+    type: "object"
+    properties:
+      request_id:
+        type: "string"
+      meta_alerts:
+        type: "array"
+        items:
+          $ref: "#/definitions/meta_alert_w_id"
+      alerts:
+        type: "array"
+        items:
+          $ref: "#/definitions/alert_w_id"
+    example:
+      alerts:
+      - code_language_id: "code_language_id"
+        alert_id: "alert_id"
+        primary_message:
+          filepath: "filepath"
+          line_start: 0
+          line_end: 6
+        tool_id: "tool_id"
+        checker_id: "checker_id"
+        secondary_messages: ""
+      - code_language_id: "code_language_id"
+        alert_id: "alert_id"
+        primary_message:
+          filepath: "filepath"
+          line_start: 0
+          line_end: 6
+        tool_id: "tool_id"
+        checker_id: "checker_id"
+        secondary_messages: ""
+      meta_alerts:
+      - filepath: "filepath"
+        line_number: 0
+        determination:
+          flag_list:
+          - flag: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          - flag: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          inapplicable_environment_list:
+          - inapplicable_environment: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          - inapplicable_environment: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          ignored_list:
+          - ignored: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          - ignored: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          verdict_list:
+          - verdict: "verdict"
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          - verdict: "verdict"
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          dead_list:
+          - dead: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          - dead: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          dangerous_construct_list:
+          - dangerous_construct: "dangerous_construct"
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          - dangerous_construct: "dangerous_construct"
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          notes_list:
+          - notes: "notes"
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          - notes: "notes"
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+        meta_alert_id: "meta_alert_id"
+        condition_id: "condition_id"
+        alert_ids:
+        - "alert_ids"
+        - "alert_ids"
+        auto_verdict:
+          key: "auto_verdict"
+      - filepath: "filepath"
+        line_number: 0
+        determination:
+          flag_list:
+          - flag: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          - flag: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          inapplicable_environment_list:
+          - inapplicable_environment: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          - inapplicable_environment: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          ignored_list:
+          - ignored: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          - ignored: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          verdict_list:
+          - verdict: "verdict"
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          - verdict: "verdict"
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          dead_list:
+          - dead: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          - dead: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          dangerous_construct_list:
+          - dangerous_construct: "dangerous_construct"
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          - dangerous_construct: "dangerous_construct"
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          notes_list:
+          - notes: "notes"
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          - notes: "notes"
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+        meta_alert_id: "meta_alert_id"
+        condition_id: "condition_id"
+        alert_ids:
+        - "alert_ids"
+        - "alert_ids"
+        auto_verdict:
+          key: "auto_verdict"
+      request_id: "request_id"
+  get_package_response:
+    type: "object"
+    required:
+    - "package"
+    - "request_id"
+    properties:
+      request_id:
+        type: "string"
+      package:
+        $ref: "#/definitions/package"
+    example:
+      package:
+        uploader_id: "uploader_id"
+        code_metrics:
+        - filepath_depth: "filepath_depth"
+          filename: "filename"
+          filepath: "filepath"
+          functions:
+          - code_metrics_data:
+            - null
+            - null
+            name: "name"
+            line_start: 0
+            line_end: 6
+          - code_metrics_data:
+            - null
+            - null
+            name: "name"
+            line_start: 0
+            line_end: 6
+          sourcefile_id: "sourcefile_id"
+          code_metrics_data:
+          - {}
+          - {}
+        - filepath_depth: "filepath_depth"
+          filename: "filename"
+          filepath: "filepath"
+          functions:
+          - code_metrics_data:
+            - null
+            - null
+            name: "name"
+            line_start: 0
+            line_end: 6
+          - code_metrics_data:
+            - null
+            - null
+            name: "name"
+            line_start: 0
+            line_end: 6
+          sourcefile_id: "sourcefile_id"
+          code_metrics_data:
+          - {}
+          - {}
+        created_at: "2000-01-23T04:56:07.000+00:00"
+        package_id: "package_id"
+        package_description: "package_description"
+        alerts: ""
+        author_source: "author_source"
+        test_suite_id: "test_suite_id"
+        updated_at: "2000-01-23T04:56:07.000+00:00"
+        tool_ids:
+        - "tool_ids"
+        - "tool_ids"
+        package_name: "package_name"
+        uploader_organization_id: "uploader_organization_id"
+        code_languages: ""
+      request_id: "request_id"
+  get_projects_response:
+    type: "object"
+    required:
+    - "projects"
+    - "request_id"
+    properties:
+      request_id:
+        type: "string"
+      projects:
+        type: "array"
+        items:
+          $ref: "#/definitions/project"
+    example:
+      projects:
+      - author_source: "author_source"
+        project_description: "project_description"
+        meta_alerts:
+        - filepath: "filepath"
+          line_number: 0
+          determination:
+            flag_list:
+            - flag: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - flag: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            inapplicable_environment_list:
+            - inapplicable_environment: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - inapplicable_environment: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            ignored_list:
+            - ignored: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - ignored: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            verdict_list:
+            - verdict: "verdict"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - verdict: "verdict"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            dead_list:
+            - dead: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - dead: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            dangerous_construct_list:
+            - dangerous_construct: "dangerous_construct"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - dangerous_construct: "dangerous_construct"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            notes_list:
+            - notes: "notes"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - notes: "notes"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+          meta_alert_id: "meta_alert_id"
+          condition_id: "condition_id"
+          alert_ids:
+          - "alert_ids"
+          - "alert_ids"
+          auto_verdict:
+            key: "auto_verdict"
+        - filepath: "filepath"
+          line_number: 0
+          determination:
+            flag_list:
+            - flag: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - flag: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            inapplicable_environment_list:
+            - inapplicable_environment: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - inapplicable_environment: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            ignored_list:
+            - ignored: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - ignored: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            verdict_list:
+            - verdict: "verdict"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - verdict: "verdict"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            dead_list:
+            - dead: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - dead: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            dangerous_construct_list:
+            - dangerous_construct: "dangerous_construct"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - dangerous_construct: "dangerous_construct"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            notes_list:
+            - notes: "notes"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - notes: "notes"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+          meta_alert_id: "meta_alert_id"
+          condition_id: "condition_id"
+          alert_ids:
+          - "alert_ids"
+          - "alert_ids"
+          auto_verdict:
+            key: "auto_verdict"
+        project_id: "project_id"
+        taxonomies:
+        - taxonomy_id: "taxonomy_id"
+          taxonomy_version: "taxonomy_version"
+          description: "description"
+          conditions:
+          - code_language_ids:
+            - "code_language_ids"
+            - "code_language_ids"
+            condition_fields: "{}"
+            condition_name: "condition_name"
+            title: "title"
+            condition_id: "condition_id"
+            platforms:
+            - "platforms"
+            - "platforms"
+          - code_language_ids:
+            - "code_language_ids"
+            - "code_language_ids"
+            condition_fields: "{}"
+            condition_name: "condition_name"
+            title: "title"
+            condition_id: "condition_id"
+            platforms:
+            - "platforms"
+            - "platforms"
+          taxonomy_name: "taxonomy_name"
+        - taxonomy_id: "taxonomy_id"
+          taxonomy_version: "taxonomy_version"
+          description: "description"
+          conditions:
+          - code_language_ids:
+            - "code_language_ids"
+            - "code_language_ids"
+            condition_fields: "{}"
+            condition_name: "condition_name"
+            title: "title"
+            condition_id: "condition_id"
+            platforms:
+            - "platforms"
+            - "platforms"
+          - code_language_ids:
+            - "code_language_ids"
+            - "code_language_ids"
+            condition_fields: "{}"
+            condition_name: "condition_name"
+            title: "title"
+            condition_id: "condition_id"
+            platforms:
+            - "platforms"
+            - "platforms"
+          taxonomy_name: "taxonomy_name"
+        package_id: "package_id"
+        author_organization_id: "author_organization_id"
+        project_name: "project_name"
+        author_id: "author_id"
+      - author_source: "author_source"
+        project_description: "project_description"
+        meta_alerts:
+        - filepath: "filepath"
+          line_number: 0
+          determination:
+            flag_list:
+            - flag: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - flag: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            inapplicable_environment_list:
+            - inapplicable_environment: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - inapplicable_environment: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            ignored_list:
+            - ignored: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - ignored: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            verdict_list:
+            - verdict: "verdict"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - verdict: "verdict"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            dead_list:
+            - dead: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - dead: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            dangerous_construct_list:
+            - dangerous_construct: "dangerous_construct"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - dangerous_construct: "dangerous_construct"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            notes_list:
+            - notes: "notes"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - notes: "notes"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+          meta_alert_id: "meta_alert_id"
+          condition_id: "condition_id"
+          alert_ids:
+          - "alert_ids"
+          - "alert_ids"
+          auto_verdict:
+            key: "auto_verdict"
+        - filepath: "filepath"
+          line_number: 0
+          determination:
+            flag_list:
+            - flag: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - flag: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            inapplicable_environment_list:
+            - inapplicable_environment: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - inapplicable_environment: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            ignored_list:
+            - ignored: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - ignored: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            verdict_list:
+            - verdict: "verdict"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - verdict: "verdict"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            dead_list:
+            - dead: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - dead: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            dangerous_construct_list:
+            - dangerous_construct: "dangerous_construct"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - dangerous_construct: "dangerous_construct"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            notes_list:
+            - notes: "notes"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - notes: "notes"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+          meta_alert_id: "meta_alert_id"
+          condition_id: "condition_id"
+          alert_ids:
+          - "alert_ids"
+          - "alert_ids"
+          auto_verdict:
+            key: "auto_verdict"
+        project_id: "project_id"
+        taxonomies:
+        - taxonomy_id: "taxonomy_id"
+          taxonomy_version: "taxonomy_version"
+          description: "description"
+          conditions:
+          - code_language_ids:
+            - "code_language_ids"
+            - "code_language_ids"
+            condition_fields: "{}"
+            condition_name: "condition_name"
+            title: "title"
+            condition_id: "condition_id"
+            platforms:
+            - "platforms"
+            - "platforms"
+          - code_language_ids:
+            - "code_language_ids"
+            - "code_language_ids"
+            condition_fields: "{}"
+            condition_name: "condition_name"
+            title: "title"
+            condition_id: "condition_id"
+            platforms:
+            - "platforms"
+            - "platforms"
+          taxonomy_name: "taxonomy_name"
+        - taxonomy_id: "taxonomy_id"
+          taxonomy_version: "taxonomy_version"
+          description: "description"
+          conditions:
+          - code_language_ids:
+            - "code_language_ids"
+            - "code_language_ids"
+            condition_fields: "{}"
+            condition_name: "condition_name"
+            title: "title"
+            condition_id: "condition_id"
+            platforms:
+            - "platforms"
+            - "platforms"
+          - code_language_ids:
+            - "code_language_ids"
+            - "code_language_ids"
+            condition_fields: "{}"
+            condition_name: "condition_name"
+            title: "title"
+            condition_id: "condition_id"
+            platforms:
+            - "platforms"
+            - "platforms"
+          taxonomy_name: "taxonomy_name"
+        package_id: "package_id"
+        author_organization_id: "author_organization_id"
+        project_name: "project_name"
+        author_id: "author_id"
+      request_id: "request_id"
+  get_projects_classifier_response:
+    type: "object"
+    required:
+    - "projects"
+    - "request_id"
+    properties:
+      request_id:
+        type: "string"
+      projects:
+        type: "array"
+        items:
+          $ref: "#/definitions/classifier_project"
+    example:
+      projects:
+      - uploader_id: "uploader_id"
+        project_description: "project_description"
+        package:
+          alerts: ""
+          test_suite_id: "test_suite_id"
+          uploader_id: "uploader_id"
+          updated_at: "2000-01-23T04:56:07.000+00:00"
+          package_name: "package_name"
+          created_at: "2000-01-23T04:56:07.000+00:00"
+          package_id: "package_id"
+          tools:
+          - tool_name: "tool_name"
+            author_source: "author_source"
+            uploader_id: "uploader_id"
+            tool_version: "tool_version"
+            tool_id: "tool_id"
+            metrics_data_headers: "{}"
+            category: "category"
+            checker_mappings:
+            - checker_name: "checker_name"
+              checker_id: "checker_id"
+              conditions:
+              - taxonomy_id: "taxonomy_id"
+                code_language_ids:
+                - "code_language_ids"
+                - "code_language_ids"
+                condition_id: "condition_id"
+              - taxonomy_id: "taxonomy_id"
+                code_language_ids:
+                - "code_language_ids"
+                - "code_language_ids"
+                condition_id: "condition_id"
+            - checker_name: "checker_name"
+              checker_id: "checker_id"
+              conditions:
+              - taxonomy_id: "taxonomy_id"
+                code_language_ids:
+                - "code_language_ids"
+                - "code_language_ids"
+                condition_id: "condition_id"
+              - taxonomy_id: "taxonomy_id"
+                code_language_ids:
+                - "code_language_ids"
+                - "code_language_ids"
+                condition_id: "condition_id"
+            uploader_organization_id: "uploader_organization_id"
+          - tool_name: "tool_name"
+            author_source: "author_source"
+            uploader_id: "uploader_id"
+            tool_version: "tool_version"
+            tool_id: "tool_id"
+            metrics_data_headers: "{}"
+            category: "category"
+            checker_mappings:
+            - checker_name: "checker_name"
+              checker_id: "checker_id"
+              conditions:
+              - taxonomy_id: "taxonomy_id"
+                code_language_ids:
+                - "code_language_ids"
+                - "code_language_ids"
+                condition_id: "condition_id"
+              - taxonomy_id: "taxonomy_id"
+                code_language_ids:
+                - "code_language_ids"
+                - "code_language_ids"
+                condition_id: "condition_id"
+            - checker_name: "checker_name"
+              checker_id: "checker_id"
+              conditions:
+              - taxonomy_id: "taxonomy_id"
+                code_language_ids:
+                - "code_language_ids"
+                - "code_language_ids"
+                condition_id: "condition_id"
+              - taxonomy_id: "taxonomy_id"
+                code_language_ids:
+                - "code_language_ids"
+                - "code_language_ids"
+                condition_id: "condition_id"
+            uploader_organization_id: "uploader_organization_id"
+          uploader_organization_id: "uploader_organization_id"
+          sourcefiles:
+          - filepath_depth: "filepath_depth"
+            filename: "filename"
+            filepath: "filepath"
+            functions:
+            - code_metrics_data:
+              - null
+              - null
+              name: "name"
+              line_start: 0
+              line_end: 6
+            - code_metrics_data:
+              - null
+              - null
+              name: "name"
+              line_start: 0
+              line_end: 6
+            sourcefile_id: "sourcefile_id"
+            code_metrics_data:
+            - {}
+            - {}
+          - filepath_depth: "filepath_depth"
+            filename: "filename"
+            filepath: "filepath"
+            functions:
+            - code_metrics_data:
+              - null
+              - null
+              name: "name"
+              line_start: 0
+              line_end: 6
+            - code_metrics_data:
+              - null
+              - null
+              name: "name"
+              line_start: 0
+              line_end: 6
+            sourcefile_id: "sourcefile_id"
+            code_metrics_data:
+            - {}
+            - {}
+          package_description: "package_description"
+          code_languages: ""
+        meta_alerts:
+        - filepath: "filepath"
+          line_number: 0
+          determination:
+            flag_list:
+            - flag: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - flag: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            inapplicable_environment_list:
+            - inapplicable_environment: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - inapplicable_environment: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            ignored_list:
+            - ignored: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - ignored: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            verdict_list:
+            - verdict: "verdict"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - verdict: "verdict"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            dead_list:
+            - dead: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - dead: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            dangerous_construct_list:
+            - dangerous_construct: "dangerous_construct"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - dangerous_construct: "dangerous_construct"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            notes_list:
+            - notes: "notes"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - notes: "notes"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+          meta_alert_id: "meta_alert_id"
+          condition_id: "condition_id"
+          alert_ids:
+          - "alert_ids"
+          - "alert_ids"
+          auto_verdict:
+            key: "auto_verdict"
+        - filepath: "filepath"
+          line_number: 0
+          determination:
+            flag_list:
+            - flag: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - flag: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            inapplicable_environment_list:
+            - inapplicable_environment: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - inapplicable_environment: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            ignored_list:
+            - ignored: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - ignored: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            verdict_list:
+            - verdict: "verdict"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - verdict: "verdict"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            dead_list:
+            - dead: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - dead: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            dangerous_construct_list:
+            - dangerous_construct: "dangerous_construct"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - dangerous_construct: "dangerous_construct"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            notes_list:
+            - notes: "notes"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - notes: "notes"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+          meta_alert_id: "meta_alert_id"
+          condition_id: "condition_id"
+          alert_ids:
+          - "alert_ids"
+          - "alert_ids"
+          auto_verdict:
+            key: "auto_verdict"
+        updated_at: "2000-01-23T04:56:07.000+00:00"
+        project_id: "project_id"
+        taxonomies:
+        - taxonomy_id: "taxonomy_id"
+          taxonomy_version: "taxonomy_version"
+          description: "description"
+          conditions:
+          - code_language_ids:
+            - "code_language_ids"
+            - "code_language_ids"
+            condition_fields: "{}"
+            condition_name: "condition_name"
+            title: "title"
+            condition_id: "condition_id"
+            platforms:
+            - "platforms"
+            - "platforms"
+          - code_language_ids:
+            - "code_language_ids"
+            - "code_language_ids"
+            condition_fields: "{}"
+            condition_name: "condition_name"
+            title: "title"
+            condition_id: "condition_id"
+            platforms:
+            - "platforms"
+            - "platforms"
+          taxonomy_name: "taxonomy_name"
+        - taxonomy_id: "taxonomy_id"
+          taxonomy_version: "taxonomy_version"
+          description: "description"
+          conditions:
+          - code_language_ids:
+            - "code_language_ids"
+            - "code_language_ids"
+            condition_fields: "{}"
+            condition_name: "condition_name"
+            title: "title"
+            condition_id: "condition_id"
+            platforms:
+            - "platforms"
+            - "platforms"
+          - code_language_ids:
+            - "code_language_ids"
+            - "code_language_ids"
+            condition_fields: "{}"
+            condition_name: "condition_name"
+            title: "title"
+            condition_id: "condition_id"
+            platforms:
+            - "platforms"
+            - "platforms"
+          taxonomy_name: "taxonomy_name"
+        created_at: "2000-01-23T04:56:07.000+00:00"
+        project_name: "project_name"
+        uploader_organization_id: "uploader_organization_id"
+      - uploader_id: "uploader_id"
+        project_description: "project_description"
+        package:
+          alerts: ""
+          test_suite_id: "test_suite_id"
+          uploader_id: "uploader_id"
+          updated_at: "2000-01-23T04:56:07.000+00:00"
+          package_name: "package_name"
+          created_at: "2000-01-23T04:56:07.000+00:00"
+          package_id: "package_id"
+          tools:
+          - tool_name: "tool_name"
+            author_source: "author_source"
+            uploader_id: "uploader_id"
+            tool_version: "tool_version"
+            tool_id: "tool_id"
+            metrics_data_headers: "{}"
+            category: "category"
+            checker_mappings:
+            - checker_name: "checker_name"
+              checker_id: "checker_id"
+              conditions:
+              - taxonomy_id: "taxonomy_id"
+                code_language_ids:
+                - "code_language_ids"
+                - "code_language_ids"
+                condition_id: "condition_id"
+              - taxonomy_id: "taxonomy_id"
+                code_language_ids:
+                - "code_language_ids"
+                - "code_language_ids"
+                condition_id: "condition_id"
+            - checker_name: "checker_name"
+              checker_id: "checker_id"
+              conditions:
+              - taxonomy_id: "taxonomy_id"
+                code_language_ids:
+                - "code_language_ids"
+                - "code_language_ids"
+                condition_id: "condition_id"
+              - taxonomy_id: "taxonomy_id"
+                code_language_ids:
+                - "code_language_ids"
+                - "code_language_ids"
+                condition_id: "condition_id"
+            uploader_organization_id: "uploader_organization_id"
+          - tool_name: "tool_name"
+            author_source: "author_source"
+            uploader_id: "uploader_id"
+            tool_version: "tool_version"
+            tool_id: "tool_id"
+            metrics_data_headers: "{}"
+            category: "category"
+            checker_mappings:
+            - checker_name: "checker_name"
+              checker_id: "checker_id"
+              conditions:
+              - taxonomy_id: "taxonomy_id"
+                code_language_ids:
+                - "code_language_ids"
+                - "code_language_ids"
+                condition_id: "condition_id"
+              - taxonomy_id: "taxonomy_id"
+                code_language_ids:
+                - "code_language_ids"
+                - "code_language_ids"
+                condition_id: "condition_id"
+            - checker_name: "checker_name"
+              checker_id: "checker_id"
+              conditions:
+              - taxonomy_id: "taxonomy_id"
+                code_language_ids:
+                - "code_language_ids"
+                - "code_language_ids"
+                condition_id: "condition_id"
+              - taxonomy_id: "taxonomy_id"
+                language_ids:
+                - "language_ids"
+                - "language_ids"
+                condition_id: "condition_id"
+            uploader_organization_id: "uploader_organization_id"
+          uploader_organization_id: "uploader_organization_id"
+          sourcefiles:
+          - filepath_depth: "filepath_depth"
+            filename: "filename"
+            filepath: "filepath"
+            functions:
+            - code_metrics_data:
+              - null
+              - null
+              name: "name"
+              line_start: 0
+              line_end: 6
+            - code_metrics_data:
+              - null
+              - null
+              name: "name"
+              line_start: 0
+              line_end: 6
+            sourcefile_id: "sourcefile_id"
+            code_metrics_data:
+            - {}
+            - {}
+          - filepath_depth: "filepath_depth"
+            filename: "filename"
+            filepath: "filepath"
+            functions:
+            - code_metrics_data:
+              - null
+              - null
+              name: "name"
+              line_start: 0
+              line_end: 6
+            - code_metrics_data:
+              - null
+              - null
+              name: "name"
+              line_start: 0
+              line_end: 6
+            sourcefile_id: "sourcefile_id"
+            code_metrics_data:
+            - {}
+            - {}
+          package_description: "package_description"
+          code_languages: ""
+        meta_alerts:
+        - filepath: "filepath"
+          line_number: 0
+          determination:
+            flag_list:
+            - flag: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - flag: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            inapplicable_environment_list:
+            - inapplicable_environment: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - inapplicable_environment: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            ignored_list:
+            - ignored: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - ignored: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            verdict_list:
+            - verdict: "verdict"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - verdict: "verdict"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            dead_list:
+            - dead: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - dead: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            dangerous_construct_list:
+            - dangerous_construct: "dangerous_construct"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - dangerous_construct: "dangerous_construct"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            notes_list:
+            - notes: "notes"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - notes: "notes"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+          meta_alert_id: "meta_alert_id"
+          condition_id: "condition_id"
+          alert_ids:
+          - "alert_ids"
+          - "alert_ids"
+          auto_verdict:
+            key: "auto_verdict"
+        - filepath: "filepath"
+          line_number: 0
+          determination:
+            flag_list:
+            - flag: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - flag: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            inapplicable_environment_list:
+            - inapplicable_environment: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - inapplicable_environment: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            ignored_list:
+            - ignored: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - ignored: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            verdict_list:
+            - verdict: "verdict"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - verdict: "verdict"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            dead_list:
+            - dead: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - dead: true
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            dangerous_construct_list:
+            - dangerous_construct: "dangerous_construct"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - dangerous_construct: "dangerous_construct"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            notes_list:
+            - notes: "notes"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+            - notes: "notes"
+              timestamp: "2000-01-23T04:56:07.000+00:00"
+          meta_alert_id: "meta_alert_id"
+          condition_id: "condition_id"
+          alert_ids:
+          - "alert_ids"
+          - "alert_ids"
+          auto_verdict:
+            key: "auto_verdict"
+        updated_at: "2000-01-23T04:56:07.000+00:00"
+        project_id: "project_id"
+        taxonomies:
+        - taxonomy_id: "taxonomy_id"
+          taxonomy_version: "taxonomy_version"
+          description: "description"
+          conditions:
+          - code_language_ids:
+            - "code_language_ids"
+            - "code_language_ids"
+            condition_fields: "{}"
+            condition_name: "condition_name"
+            title: "title"
+            condition_id: "condition_id"
+            platforms:
+            - "platforms"
+            - "platforms"
+          - code_language_ids:
+            - "code_language_ids"
+            - "code_language_ids"
+            condition_fields: "{}"
+            condition_name: "condition_name"
+            title: "title"
+            condition_id: "condition_id"
+            platforms:
+            - "platforms"
+            - "platforms"
+          taxonomy_name: "taxonomy_name"
+        - taxonomy_id: "taxonomy_id"
+          taxonomy_version: "taxonomy_version"
+          description: "description"
+          conditions:
+          - code_language_ids:
+            - "code_language_ids"
+            - "code_language_ids"
+            condition_fields: "{}"
+            condition_name: "condition_name"
+            title: "title"
+            condition_id: "condition_id"
+            platforms:
+            - "platforms"
+            - "platforms"
+          - code_language_ids:
+            - "code_language_ids"
+            - "code_language_ids"
+            condition_fields: "{}"
+            condition_name: "condition_name"
+            title: "title"
+            condition_id: "condition_id"
+            platforms:
+            - "platforms"
+            - "platforms"
+          taxonomy_name: "taxonomy_name"
+        created_at: "2000-01-23T04:56:07.000+00:00"
+        project_name: "project_name"
+        uploader_organization_id: "uploader_organization_id"
+      request_id: "request_id"
+  get_taxonomy:
+    type: "object"
+    required:
+    - "taxonomy_id"
+    - "taxonomy_name"
+    - "taxonomy_version"
+    properties:
+      taxonomy_id:
+        type: "string"
+      taxonomy_name:
+        type: "string"
+        description: "Name of the taxonomy, i.e., CERT or CWE"
+      taxonomy_version:
+        type: "string"
+      description:
+        type: "string"
+      conditions:
+        type: "array"
+        items:
+          $ref: "#/definitions/condition_response"
+    example:
+      taxonomy_id: "taxonomy_id"
+      taxonomy_version: "taxonomy_version"
+      description: "description"
+      conditions:
+      - code_language_ids:
+        - "code_language_ids"
+        - "code_language_ids"
+        condition_fields: "{}"
+        condition_name: "condition_name"
+        title: "title"
+        condition_id: "condition_id"
+        platforms:
+        - "platforms"
+        - "platforms"
+      - code_language_ids:
+        - "code_language_ids"
+        - "code_language_ids"
+        condition_fields: "{}"
+        condition_name: "condition_name"
+        title: "title"
+        condition_id: "condition_id"
+        platforms:
+        - "platforms"
+        - "platforms"
+      taxonomy_name: "taxonomy_name"
+  get_taxonomy_response:
+    type: "object"
+    required:
+    - "request_id"
+    - "taxonomy"
+    properties:
+      request_id:
+        type: "string"
+      taxonomy:
+        $ref: "#/definitions/get_taxonomy"
+    example:
+      taxonomy:
+        taxonomy_id: "taxonomy_id"
+        taxonomy_version: "taxonomy_version"
+        description: "description"
+        conditions:
+        - code_language_ids:
+          - "code_language_ids"
+          - "code_language_ids"
+          condition_fields: "{}"
+          condition_name: "condition_name"
+          title: "title"
+          condition_id: "condition_id"
+          platforms:
+          - "platforms"
+          - "platforms"
+        - code_language_ids:
+          - "code_language_ids"
+          - "code_language_ids"
+          condition_fields: "{}"
+          condition_name: "condition_name"
+          title: "title"
+          condition_id: "condition_id"
+          platforms:
+          - "platforms"
+          - "platforms"
+        taxonomy_name: "taxonomy_name"
+      request_id: "request_id"
+  get_tool:
+    type: "object"
+    required:
+    - "category"
+    - "tool_id"
+    - "tool_name"
+    - "tool_version"
+    properties:
+      tool_id:
+        type: "string"
+      tool_name:
+        type: "string"
+      tool_version:
+        type: "string"
+      category:
+        type: "string"
+      checker_mappings:
+        type: "array"
+        items:
+          $ref: "#/definitions/checker_conditions"
+      metrics_data_headers:
+        type: "object"
+        description: "Header fields expected for the metrics data"
+        properties: {}
+      uploader_id:
+        type: "string"
+      uploader_organization_id:
+        type: "string"
+      author_source:
+        type: "string"
+    example:
+      tool_name: "tool_name"
+      author_source: "author_source"
+      uploader_id: "uploader_id"
+      tool_version: "tool_version"
+      tool_id: "tool_id"
+      metrics_data_headers: "{}"
+      category: "category"
+      checker_mappings:
+      - checker_name: "checker_name"
+        checker_id: "checker_id"
+        conditions:
+        - taxonomy_id: "taxonomy_id"
+          code_language_ids:
+          - "code_language_ids"
+          - "code_language_ids"
+          condition_id: "condition_id"
+        - taxonomy_id: "taxonomy_id"
+          code_language_ids:
+          - "code_language_ids"
+          - "code_language_ids"
+          condition_id: "condition_id"
+      - checker_name: "checker_name"
+        checker_id: "checker_id"
+        conditions:
+        - taxonomy_id: "taxonomy_id"
+          code_language_ids:
+          - "code_language_ids"
+          - "code_language_ids"
+          condition_id: "condition_id"
+        - taxonomy_id: "taxonomy_id"
+          code_language_ids:
+          - "code_language_ids"
+          - "code_language_ids"
+          condition_id: "condition_id"
+      uploader_organization_id: "uploader_organization_id"
+  get_tool_response:
+    type: "object"
+    properties:
+      request_id:
+        type: "string"
+      tool:
+        $ref: "#/definitions/get_tool"
+    example:
+      request_id: "request_id"
+      tool:
+        tool_name: "tool_name"
+        author_source: "author_source"
+        uploader_id: "uploader_id"
+        tool_version: "tool_version"
+        tool_id: "tool_id"
+        metrics_data_headers: "{}"
+        category: "category"
+        checker_mappings:
+        - checker_name: "checker_name"
+          checker_id: "checker_id"
+          conditions:
+          - taxonomy_id: "taxonomy_id"
+            code_language_ids:
+            - "code_language_ids"
+            - "code_language_ids"
+            condition_id: "condition_id"
+          - taxonomy_id: "taxonomy_id"
+            code_language_ids:
+            - "code_language_ids"
+            - "code_language_ids"
+            condition_id: "condition_id"
+        - checker_name: "checker_name"
+          checker_id: "checker_id"
+          conditions:
+          - taxonomy_id: "taxonomy_id"
+            code_language_ids:
+            - "code_language_ids"
+            - "code_language_ids"
+            condition_id: "condition_id"
+          - taxonomy_id: "taxonomy_id"
+            code_language_ids:
+            - "code_language_ids"
+            - "code_language_ids"
+            condition_id: "condition_id"
+        uploader_organization_id: "uploader_organization_id"
+  language_version:
+    type: "object"
+    required:
+    - "language"
+    properties:
+      language:
+        type: "string"
+      version:
+        type: "string"
+  language_version_w_id:
+    type: "object"
+    required:
+    - "language"
+    - "code_language_id"
+    properties:
+      code_language_id:
+        type: "string"
+      language:
+        type: "string"
+      version:
+        type: "string"
+    example:
+      language: "language"
+      code_language_id: "code_language_id"
+      version: "version"
+  list_languages:
+    type: "array"
+    items:
+      $ref: "#/definitions/language_version_w_id"
+  list_languages_response:
+    type: "object"
+    required:
+    - "languages"
+    - "request_id"
+    properties:
+      languages:
+        $ref: "#/definitions/list_languages"
+      request_id:
+        type: "string"
+    example:
+      languages: ""
+      request_id: "request_id"
+  list_packages:
+    type: "array"
+    items:
+      $ref: "#/definitions/package_heading"
+  list_packages_response:
+    type: "object"
+    required:
+    - "packages"
+    - "request_id"
+    properties:
+      packages:
+        $ref: "#/definitions/list_packages"
+      request_id:
+        type: "string"
+    example:
+      packages: ""
+      request_id: "request_id"
+  list_projects:
+    type: "array"
+    items:
+      $ref: "#/definitions/project_heading"
+  list_projects_response:
+    type: "object"
+    required:
+    - "projects"
+    - "request_id"
+    properties:
+      projects:
+        $ref: "#/definitions/list_projects"
+      request_id:
+        type: "string"
+    example:
+      projects: ""
+      request_id: "request_id"
+  message:
+    type: "object"
+    required:
+    - "filepath"
+    - "line_start"
+    properties:
+      line_start:
+        type: "integer"
+      line_end:
+        type: "integer"
+      filepath:
+        type: "string"
+    example:
+      filepath: "filepath"
+      line_start: 0
+      line_end: 6
+  meta_alert_mappings:
+    type: "object"
+    required:
+    - "condition_id"
+    - "filepath"
+    - "line_number"
+    properties:
+      condition_id:
+        type: "string"
+      filepath:
+        type: "string"
+      line_number:
+        type: "integer"
+    example:
+      filepath: "filepath"
+      line_number: 0
+      condition_id: "condition_id"
+  meta_alert_no_id:
+    type: "object"
+    required:
+    - "condition_id"
+    - "filepath"
+    - "line_number"
+    properties:
+      condition_id:
+        type: "string"
+      filepath:
+        type: "string"
+      line_number:
+        type: "integer"
+      alert_ids:
+        type: "array"
+        items:
+          type: "string"
+      determination:
+        $ref: "#/definitions/determination"
+      auto_verdict:
+        type: "object"
+        additionalProperties:
+          type: "string"
+  meta_alert_w_id:
+    type: "object"
+    required:
+    - "condition_id"
+    - "filepath"
+    - "line_number"
+    - "meta_alert_id"
+    properties:
+      meta_alert_id:
+        type: "string"
+      condition_id:
+        type: "string"
+      filepath:
+        type: "string"
+      line_number:
+        type: "integer"
+      alert_ids:
+        type: "array"
+        items:
+          type: "string"
+      determination:
+        $ref: "#/definitions/determination"
+      auto_verdict:
+        type: "object"
+        additionalProperties:
+          type: "string"
+    example:
+      filepath: "filepath"
+      line_number: 0
+      determination:
+        flag_list:
+        - flag: true
+          timestamp: "2000-01-23T04:56:07.000+00:00"
+        - flag: true
+          timestamp: "2000-01-23T04:56:07.000+00:00"
+        inapplicable_environment_list:
+        - inapplicable_environment: true
+          timestamp: "2000-01-23T04:56:07.000+00:00"
+        - inapplicable_environment: true
+          timestamp: "2000-01-23T04:56:07.000+00:00"
+        ignored_list:
+        - ignored: true
+          timestamp: "2000-01-23T04:56:07.000+00:00"
+        - ignored: true
+          timestamp: "2000-01-23T04:56:07.000+00:00"
+        verdict_list:
+        - verdict: "verdict"
+          timestamp: "2000-01-23T04:56:07.000+00:00"
+        - verdict: "verdict"
+          timestamp: "2000-01-23T04:56:07.000+00:00"
+        dead_list:
+        - dead: true
+          timestamp: "2000-01-23T04:56:07.000+00:00"
+        - dead: true
+          timestamp: "2000-01-23T04:56:07.000+00:00"
+        dangerous_construct_list:
+        - dangerous_construct: "dangerous_construct"
+          timestamp: "2000-01-23T04:56:07.000+00:00"
+        - dangerous_construct: "dangerous_construct"
+          timestamp: "2000-01-23T04:56:07.000+00:00"
+        notes_list:
+        - notes: "notes"
+          timestamp: "2000-01-23T04:56:07.000+00:00"
+        - notes: "notes"
+          timestamp: "2000-01-23T04:56:07.000+00:00"
+      meta_alert_id: "meta_alert_id"
+      condition_id: "condition_id"
+      alert_ids:
+      - "alert_ids"
+      - "alert_ids"
+      auto_verdict:
+        key: "auto_verdict"
+  metrics:
+    type: "object"
+    additionalProperties: {}
+  package:
+    type: "object"
+    required:
+    - "created_at"
+    - "package_id"
+    - "package_name"
+    properties:
+      package_id:
+        type: "string"
+      package_name:
+        type: "string"
+      package_description:
+        type: "string"
+      code_languages:
+        $ref: "#/definitions/list_languages"
+      alerts:
+        $ref: "#/definitions/package_alerts_w_id"
+      code_metrics:
+        type: "array"
+        items:
+          $ref: "#/definitions/sourcefile"
+      test_suite_id:
+        type: "string"
+      uploader_id:
+        type: "string"
+      uploader_organization_id:
+        type: "string"
+      author_source:
+        type: "string"
+      tool_ids:
+        type: "array"
+        items:
+          type: "string"
+      created_at:
+        type: "string"
+        format: "date-time"
+      updated_at:
+        type: "string"
+        format: "date-time"
+    example:
+      uploader_id: "uploader_id"
+      code_metrics:
+      - filepath_depth: "filepath_depth"
+        filename: "filename"
+        filepath: "filepath"
+        functions:
+        - code_metrics_data:
+          - null
+          - null
+          name: "name"
+          line_start: 0
+          line_end: 6
+        - code_metrics_data:
+          - null
+          - null
+          name: "name"
+          line_start: 0
+          line_end: 6
+        sourcefile_id: "sourcefile_id"
+        code_metrics_data:
+        - {}
+        - {}
+      - filepath_depth: "filepath_depth"
+        filename: "filename"
+        filepath: "filepath"
+        functions:
+        - code_metrics_data:
+          - null
+          - null
+          name: "name"
+          line_start: 0
+          line_end: 6
+        - code_metrics_data:
+          - null
+          - null
+          name: "name"
+          line_start: 0
+          line_end: 6
+        sourcefile_id: "sourcefile_id"
+        code_metrics_data:
+        - {}
+        - {}
+      created_at: "2000-01-23T04:56:07.000+00:00"
+      package_id: "package_id"
+      package_description: "package_description"
+      alerts: ""
+      author_source: "author_source"
+      test_suite_id: "test_suite_id"
+      updated_at: "2000-01-23T04:56:07.000+00:00"
+      tool_ids:
+      - "tool_ids"
+      - "tool_ids"
+      package_name: "package_name"
+      uploader_organization_id: "uploader_organization_id"
+      code__languages: ""
+  package_alerts_w_id:
+    type: "array"
+    items:
+      $ref: "#/definitions/alert_w_id"
+  package_alerts:
+    type: "array"
+    items:
+      $ref: "#/definitions/alert_no_id"
+  package_heading:
+    type: "object"
+    required:
+    - "package_description"
+    - "package_id"
+    - "package_name"
+    properties:
+      package_id:
+        type: "string"
+      package_name:
+        type: "string"
+      package_description:
+        type: "string"
+      uploader_id:
+        type: "string"
+      uploader_organization_id:
+        type: "string"
+      author_source:
+        type: "string"
+      code__languages:
+        $ref: "#/definitions/list_languages"
+  package_metadata:
+    type: "object"
+    required:
+    - "code_language_ids"
+    - "package_description"
+    - "package_name"
+    properties:
+      package_name:
+        type: "string"
+      package_description:
+        type: "string"
+      author_source:
+        type: "string"
+      code_language_ids:
+        type: "array"
+        items:
+          type: "string"
+      codesource_url:
+        type: "string"
+        format: "uri"
+        description: "URL to Source Code Archive"
+      sourcefile_url:
+        type: "string"
+        format: "uri"
+      sourcefunction_url:
+        type: "string"
+        format: "uri"
+      test_suite_id:
+        type: "string"
+        description: "Test Suite Associated with this Package"
+      alerts:
+        $ref: "#/definitions/package_alerts"
+      tool_ids:
+        type: "array"
+        description: "ID of the tools used with this Package"
+        items:
+          type: "string"
+  project:
+    type: "object"
+    properties:
+      project_id:
+        type: "string"
+      project_name:
+        type: "string"
+      project_description:
+        type: "string"
+      package_id:
+        type: "string"
+      uploader_id:
+        type: "string"
+      uploader_organization_id:
+        type: "string"
+      author_source:
+        type: "string"
+      meta_alerts:
+        type: "array"
+        items:
+          $ref: "#/definitions/meta_alert_w_id"
+      taxonomies:
+        type: "array"
+        items:
+          $ref: "#/definitions/get_taxonomy"
+      created_at:
+        type: "string"
+        format: "date-time"
+      updated_at:
+        type: "string"
+        format: "date-time"
+    example:
+      author_source: "author_source"
+      project_description: "project_description"
+      updated_at: "2000-01-23T04:56:07.000+00:00"
+      created_at: "2000-01-23T04:56:07.000+00:00"
+      meta_alerts:
+      - filepath: "filepath"
+        line_number: 0
+        determination:
+          flag_list:
+          - flag: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          - flag: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          inapplicable_environment_list:
+          - inapplicable_environment: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          - inapplicable_environment: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          ignored_list:
+          - ignored: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          - ignored: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          verdict_list:
+          - verdict: "verdict"
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          - verdict: "verdict"
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          dead_list:
+          - dead: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          - dead: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          dangerous_construct_list:
+          - dangerous_construct: "dangerous_construct"
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          - dangerous_construct: "dangerous_construct"
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          notes_list:
+          - notes: "notes"
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          - notes: "notes"
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+        meta_alert_id: "meta_alert_id"
+        condition_id: "condition_id"
+        alert_ids:
+        - "alert_ids"
+        - "alert_ids"
+        auto_verdict:
+          key: "auto_verdict"
+      - filepath: "filepath"
+        line_number: 0
+        determination:
+          flag_list:
+          - flag: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          - flag: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          inapplicable_environment_list:
+          - inapplicable_environment: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          - inapplicable_environment: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          ignored_list:
+          - ignored: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          - ignored: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          verdict_list:
+          - verdict: "verdict"
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          - verdict: "verdict"
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          dead_list:
+          - dead: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          - dead: true
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          dangerous_construct_list:
+          - dangerous_construct: "dangerous_construct"
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          - dangerous_construct: "dangerous_construct"
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          notes_list:
+          - notes: "notes"
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+          - notes: "notes"
+            timestamp: "2000-01-23T04:56:07.000+00:00"
+        meta_alert_id: "meta_alert_id"
+        condition_id: "condition_id"
+        alert_ids:
+        - "alert_ids"
+        - "alert_ids"
+        auto_verdict:
+          key: "auto_verdict"
+      project_id: "project_id"
+      taxonomies:
+      - taxonomy_id: "taxonomy_id"
+        taxonomy_version: "taxonomy_version"
+        description: "description"
+        conditions:
+        - code_language_ids:
+          - "code_language_ids"
+          - "code_language_ids"
+          condition_fields: "{}"
+          condition_name: "condition_name"
+          title: "title"
+          condition_id: "condition_id"
+          platforms:
+          - "platforms"
+          - "platforms"
+        - code_language_ids:
+          - "code_language_ids"
+          - "code_language_ids"
+          condition_fields: "{}"
+          condition_name: "condition_name"
+          title: "title"
+          condition_id: "condition_id"
+          platforms:
+          - "platforms"
+          - "platforms"
+        taxonomy_name: "taxonomy_name"
+      - taxonomy_id: "taxonomy_id"
+        taxonomy_version: "taxonomy_version"
+        description: "description"
+        conditions:
+        - code_language_ids:
+          - "code_language_ids"
+          - "code_language_ids"
+          condition_fields: "{}"
+          condition_name: "condition_name"
+          title: "title"
+          condition_id: "condition_id"
+          platforms:
+          - "platforms"
+          - "platforms"
+        - code_language_ids:
+          - "code_language_ids"
+          - "code_language_ids"
+          condition_fields: "{}"
+          condition_name: "condition_name"
+          title: "title"
+          condition_id: "condition_id"
+          platforms:
+          - "platforms"
+          - "platforms"
+        taxonomy_name: "taxonomy_name"
+      package_id: "package_id"
+      uploader_organization_id: "author_organization_id"
+      project_name: "project_name"
+      uploader_id: "author_id"
+  project_heading:
+    type: "object"
+    required:
+    - "package_id"
+    - "project_id"
+    - "project_name"
+    properties:
+      project_id:
+        type: "string"
+      project_name:
+        type: "string"
+      project_description:
+        type: "string"
+      package_id:
+        type: "string"
+      uploader_id:
+        type: "string"
+      uploader_organization_id:
+        type: "string"
+      author_source:
+        type: "string"
+  project_heuristic_message:
+    type: "object"
+    properties:
+      project_id:
+        type: "string"
+      project_updated:
+        type: "boolean"
+      status_message:
+        type: "string"
+    example:
+      status_message: "status_message"
+      project_id: "project_id"
+      project_updated: true
+  project_ids:
+    type: "array"
+    items:
+      type: "string"
+  project_meta_alerts:
+    type: "array"
+    items:
+      $ref: "#/definitions/meta_alert_no_id"
+  project_metadata:
+    type: "object"
+    required:
+    - "package_id"
+    - "project_description"
+    - "project_name"
+    properties:
+      project_name:
+        type: "string"
+      project_description:
+        type: "string"
+      author_source:
+        type: "string"
+      package_id:
+        type: "string"
+      meta_alerts:
+        $ref: "#/definitions/project_meta_alerts"
+      taxonomy_ids:
+        type: "array"
+        items:
+          type: "string"
+  projects_requested:
+    type: "object"
+    required:
+    - "project_ids"
+    properties:
+      taxonomies_present:
+        $ref: "#/definitions/taxonomies_present"
+      project_ids:
+        type: "array"
+        items:
+          type: "string"
+  project_status:
+    type: "object"
+    required:
+    - "project_id"
+    - "set_adaptive_heuristic_open"
+    properties:
+      project_id:
+        type: "string"
+      set_adaptive_heuristic_open:
+        type: "boolean"
+  request_token:
+    type: "object"
+    required:
+    - "request_id"
+    properties:
+      request_id:
+        type: "string"
+        description: "ID used to correlate messages with each other"
+      message:
+        type: "string"
+    example:
+      message: "message"
+      request_id: "request_id"
+  secondary_messages:
+    type: "array"
+    items:
+      $ref: "#/definitions/secondary_messages_inner"
+  secondary_messages_inner:
+    required:
+    - "filepath"
+    - "line_start"
+    - "message_text"
+    properties:
+      line_start:
+        type: "integer"
+      line_end:
+        type: "integer"
+      filepath:
+        type: "string"
+      message_text:
+        type: "string"
+  sourcefile:
+    type: "object"
+    properties:
+      sourcefile_id:
+        type: "string"
+      filename:
+        type: "string"
+      filepath:
+        type: "string"
+      filepath_depth:
+        type: "string"
+      code_metrics_data:
+        type: "array"
+        items:
+          $ref: "#/definitions/metrics"
+      functions:
+        type: "array"
+        items:
+          $ref: "#/definitions/sourcefunction"
+    example:
+      filepath_depth: "filepath_depth"
+      filename: "filename"
+      filepath: "filepath"
+      functions:
+      - code_metrics_data:
+        - null
+        - null
+        name: "name"
+        line_start: 0
+        line_end: 6
+      - code_metrics_data:
+        - null
+        - null
+        name: "name"
+        line_start: 0
+        line_end: 6
+      sourcefile_id: "sourcefile_id"
+      code_metrics_data:
+      - {}
+      - {}
+  sourcefunction:
+    type: "object"
+    properties:
+      name:
+        type: "string"
+      line_start:
+        type: "integer"
+      line_end:
+        type: "integer"
+      code_metrics_data:
+        type: "array"
+        items:
+          $ref: "#/definitions/metrics"
+    example:
+      code_metrics_data:
+      - null
+      - null
+      name: "name"
+      line_start: 0
+      line_end: 6
+  taxonomy_heading:
+    type: "object"
+    required:
+    - "taxonomy_id"
+    - "taxonomy_name"
+    - "taxonomy_version"
+    properties:
+      taxonomy_id:
+        type: "string"
+      taxonomy_name:
+        type: "string"
+      taxonomy_version:
+        type: "string"
+      uploader_id:
+        type: "string"
+      uploader_organization_id:
+        type: "string"
+      author_source:
+        type: "string"
+    example:
+      author_source: "author_source"
+      taxonomy_id: "taxonomy_id"
+      uploader_id: "uploader_id"
+      taxonomy_version: "taxonomy_version"
+      taxonomy_name: "taxonomy_name"
+      uploader_organization_id: "uploader_organization_id"
+  taxonomy_list_response:
+    type: "object"
+    required:
+    - "request_id"
+    - "taxonomies"
+    properties:
+      request_id:
+        type: "string"
+      taxonomies:
+        type: "array"
+        items:
+          $ref: "#/definitions/taxonomy_heading"
+    example:
+      taxonomies:
+      - author_source: "author_source"
+        taxonomy_id: "taxonomy_id"
+        uploader_id: "uploader_id"
+        taxonomy_version: "taxonomy_version"
+        taxonomy_name: "taxonomy_name"
+        uploader_organization_id: "uploader_organization_id"
+      - author_source: "author_source"
+        taxonomy_id: "taxonomy_id"
+        uploader_id: "uploader_id"
+        taxonomy_version: "taxonomy_version"
+        taxonomy_name: "taxonomy_name"
+        uploader_organization_id: "uploader_organization_id"
+      request_id: "request_id"
+  taxonomy_metadata:
+    type: "object"
+    required:
+    - "conditions"
+    - "description"
+    - "taxonomy_name"
+    - "taxonomy_version"
+    properties:
+      taxonomy_name:
+        type: "string"
+      taxonomy_version:
+        type: "string"
+      description:
+        type: "string"
+      author_source:
+        type: "string"
+        description: "Author/Agency source of the taxonomy information"
+      conditions:
+        type: "array"
+        items:
+          $ref: "#/definitions/condition"
+  taxonomies_present:
+    type: "object"
+    properties:
+      taxonomy_ids:
+        type: "array"
+        description: "List of taxonomies already present at the source module (Stats).\
+          \ The destination module (DataHub) will use this list to avoid sending duplicate\
+          \ taxonomy information. "
+        items:
+          type: "string"
+  test_suite_heading:
+    type: "object"
+    required:
+    - "test_suite_id"
+    - "test_suite_name"
+    - "test_suite_version"
+    properties:
+      test_suite_id:
+        type: "string"
+      test_suite_name:
+        type: "string"
+      test_suite_version:
+        type: "string"
+      manifest_urls:
+        type: "array"
+        items:
+          type: "string"
+          format: "uri"
+          description: "Link to download the associated manifest"
+      uploader_id:
+        type: "string"
+      uploader_organization_id:
+        type: "string"
+      author_source:
+        type: "string"
+        description: "Author/Agency source of the test suite information"
+      code_languages:
+        $ref: "#/definitions/list_languages"
+    example:
+      author_source: "author_source"
+      test_suite_version: "test_suite_version"
+      test_suite_id: "test_suite_id"
+      uploader_id: "uploader_id"
+      manifest_urls:
+      - "http://example.com/aeiou"
+      - "http://example.com/aeiou"
+      uploader_organization_id: "uploader_organization_id"
+      test_suite_name: "test_suite_name"
+      code_languages: ""
+  test_suite_list_response:
+    type: "object"
+    required:
+    - "request_id"
+    - "test_suites"
+    properties:
+      request_id:
+        type: "string"
+      test_suites:
+        type: "array"
+        items:
+          $ref: "#/definitions/test_suite_heading"
+    example:
+      test_suites:
+      - author_source: "author_source"
+        test_suite_version: "test_suite_version"
+        test_suite_id: "test_suite_id"
+        uploader_id: "uploader_id"
+        manifest_urls:
+        - "http://example.com/aeiou"
+        - "http://example.com/aeiou"
+        uploader_organization_id: "uploader_organization_id"
+        test_suite_name: "test_suite_name"
+      - author_source: "author_source"
+        test_suite_version: "test_suite_version"
+        test_suite_id: "test_suite_id"
+        uploader_id: "uploader_id"
+        manifest_urls:
+        - "http://example.com/aeiou"
+        - "http://example.com/aeiou"
+        uploader_organization_id: "uploader_organization_id"
+        test_suite_name: "test_suite_name"
+      request_id: "request_id"
+  test_suite_metadata:
+    type: "object"
+    required:
+    - "test_suite_name"
+    - "test_suite_version"
+    properties:
+      test_suite_name:
+        type: "string"
+      test_suite_version:
+        type: "string"
+      manifest_urls:
+        type: "array"
+        items:
+          type: "string"
+          format: "uri"
+          description: "Link to download the associated manifests"
+      use_license_file_url:
+        type: "string"
+        format: "uri"
+      author_source:
+        type: "string"
+        description: "Author/Agency source of the test suite information"
+      code_languages:
+        type: "array"
+        items:
+          $ref: "#/definitions/language_version"
+  test_suite_upload_response:
+    type: "object"
+    required:
+    - "request_id"
+    - "test_suite"
+    properties:
+      request_id:
+        type: "string"
+      test_suite:
+        $ref: "#/definitions/test_suite_heading"
+      status_message:
+        type: "string"
+    example:
+      status_message: "status_message"
+      test_suite:
+        author_source: "author_source"
+        test_suite_version: "test_suite_version"
+        test_suite_id: "test_suite_id"
+        uploader_id: "uploader_id"
+        manifest_urls:
+        - "http://example.com/aeiou"
+        - "http://example.com/aeiou"
+        uploader_organization_id: "uploader_organization_id"
+        test_suite_name: "test_suite_name"
+        
+      request_id: "request_id"
+  tool_heading:
+    type: "object"
+    required:
+    - "tool_id"
+    - "tool_name"
+    - "tool_version"
+    properties:
+      tool_id:
+        type: "string"
+      tool_name:
+        type: "string"
+      tool_version:
+        type: "string"
+      code_language_ids:
+        type: "array"
+        items:
+          type: "string"
+      uploader_id:
+        type: "string"
+      uploader_organization_id:
+        type: "string"
+      author_source:
+        type: "string"
+    example:
+      tool_name: "tool_name"
+      author_source: "author_source"
+      uploader_id: "uploader_id"
+      code_language_ids:
+      - "code_language_ids"
+      - "code_language_ids"
+      tool_version: "tool_version"
+      tool_id: "tool_id"
+      uploader_organization_id: "uploader_organization_id"
+  tool_list_response:
+    type: "object"
+    required:
+    - "request_id"
+    - "tools"
+    properties:
+      request_id:
+        type: "string"
+      tools:
+        type: "array"
+        items:
+          $ref: "#/definitions/tool_heading"
+    example:
+      request_id: "request_id"
+      tools:
+      - tool_name: "tool_name"
+        author_source: "author_source"
+        uploader_id: "uploader_id"
+        code_language_ids:
+        - "code_language_ids"
+        - "code_language_ids"
+        tool_version: "tool_version"
+        tool_id: "tool_id"
+        uploader_organization_id: "uploader_organization_id"
+      - tool_name: "tool_name"
+        author_source: "author_source"
+        uploader_id: "uploader_id"
+        code_language_ids:
+        - "code_language_ids"
+        - "code_language_ids"
+        tool_version: "tool_version"
+        tool_id: "tool_id"
+        uploader_organization_id: "uploader_organization_id"
+  tool_metadata:
+    type: "object"
+    required:
+    - "category"
+    - "tool_name"
+    - "tool_version"
+    properties:
+      tool_name:
+        type: "string"
+      tool_version:
+        type: "string"
+      category:
+        type: "string"
+        description: "The type of tool, e.g., FFSA or Metrics"
+      code_language_ids:
+        type: "array"
+        items:
+          type: "string"
+      checker_mappings:
+        type: "array"
+        description: "JSON-formatted checker_mappings"
+        items:
+          $ref: "#/definitions/checker_mappings_metadata"
+      code_metrics_headers:
+        type: "object"
+        description: "Header fields expected for the metrics data"
+        properties: {}
+  tool_response:
+    type: "object"
+    required:
+    - "tool_id"
+    - "tool_name"
+    - "tool_version"
+    properties:
+      tool_id:
+        type: "string"
+      tool_name:
+        type: "string"
+      tool_version:
+        type: "string"
+      category:
+        type: "string"
+      code_language_ids:
+        type: "array"
+        items:
+          type: "string"
+    example:
+      tool_name: "tool_name"
+      code_language_ids:
+      - "code_language_ids"
+      - "code_language_ids"
+      tool_version: "tool_version"
+      tool_id: "tool_id"
+      category: "category"
+  tool_taxonomies_present:
+    type: "object"
+    properties:
+      tool_ids:
+        type: "array"
+        description: "List of tools already present at the source module (Stats).\
+          \ The destination module (DataHub) will use this list to avoid sending duplicate\
+          \ tool information. "
+        items:
+          type: "string"
+      taxonomy_ids:
+        type: "array"
+        description: "List of taxonomies already present at the source module (Stats).\
+          \ The destination module (DataHub) will use this list to avoid sending duplicate\
+          \ taxonomy information. "
+        items:
+          type: "string"
+  tool_upload_response:
+    type: "object"
+    required:
+    - "request_id"
+    - "tool"
+    properties:
+      request_id:
+        type: "string"
+      tool:
+        $ref: "#/definitions/tool_response"
+      status_message:
+        type: "string"
+    example:
+      request_id: "request_id"
+      tool:
+        tool_name: "tool_name"
+        code_language_ids:
+        - "code_language_ids"
+        - "code_language_ids"
+        tool_version: "tool_version"
+        tool_id: "tool_id"
+        category: "category"
+      status_message: "status_message"

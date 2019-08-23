@@ -1,0 +1,945 @@
+---
+swagger: "2.0"
+info:
+  description: "This API definition facilitates auditing static analysis alerts using\
+    \ classifiers, optional adaptive heuristics, and alert prioritization. The API\
+    \ enables jump-starting labeled datasets using test suites. It is intended to\
+    \ enable a wide range of users (with widely varying datasets, static analysis\
+    \ tools, machine learning expertise, and amount of labeled data) to benefit from\
+    \ using classifiers and sophisticated prioritization to automatically triage static\
+    \ analysis alerts."
+  version: "0.0.3"
+  title: "Rapid Models API Definition"
+  contact:
+    name: "Rapid Models Project"
+    url: "https://www.sei.cmu.edu/research-capabilities/all-work/display.cfm?customel_datapageid_4050=6453"
+    email: "lflynn@cert.org"
+  license:
+    name: "Software Engineering Institute - Copyright (c) 2007-2019 Carnegie Mellon\
+      \ University. All Rights Reserved."
+host: "127.0.0.1:8086"
+paths:
+  /status:
+    get:
+      tags:
+      - "Stats_Server"
+      summary: "Provides Server Status"
+      operationId: "get_status"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "x_request_token"
+        in: "header"
+        description: "Token that associates messages with each other"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Server Is Running"
+          schema:
+            $ref: "#/definitions/request_token"
+        400:
+          description: "Database Connection Lost"
+        default:
+          description: "Unexpected Error"
+          schema:
+            $ref: "#/definitions/error"
+      x-swagger-router-controller: "swagger_server.controllers.stats_server_controller"
+  /classifiers:
+    get:
+      tags:
+      - "UI_to_Stats"
+      summary: "List all classifiers and their associated data. Use the ids returned\
+        \ from this request to work with classifiers."
+      operationId: "list_classifiers"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "x_access_token"
+        in: "header"
+        description: "Token that contains information about the user"
+        required: true
+        type: "string"
+      - name: "x_request_token"
+        in: "header"
+        description: "Token that associates messages with each other"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/list_classifiers_response"
+        404:
+          description: "Classifiers Unavailable"
+        default:
+          description: "Unexpected Error"
+          schema:
+            $ref: "#/definitions/error"
+      x-swagger-router-controller: "swagger_server.controllers.ui_to_stats_controller"
+    post:
+      tags:
+      - "UI_to_Stats"
+      summary: "Create a new classifier instance. Send Classifier information including\
+        \ Automated Hyper-Parameter Optimization (AHPO) and Adaptive Heuristics to\
+        \ the Stats Module along with package_ids for packages to use in creating/training\
+        \ a classifier. Returns an id that is used to then run the classifier and\
+        \ any  additional information for the classifier."
+      operationId: "create_classifier_instance"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "x_access_token"
+        in: "header"
+        description: "Token that contains information about the user"
+        required: true
+        type: "string"
+      - name: "x_request_token"
+        in: "header"
+        description: "Token that associates messages with each other"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "classifier_instance"
+        description: "Classifier information to create"
+        required: true
+        schema:
+          $ref: "#/definitions/classifier_instance"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            $ref: "#/definitions/create_classifier_response"
+        400:
+          description: "Unable to Create Classifier"
+        default:
+          description: "Unexpected Error"
+          schema:
+            $ref: "#/definitions/error"
+      x-swagger-router-controller: "swagger_server.controllers.ui_to_stats_controller"
+  /classifiers/{classifier_instance_id}/projects/{project_id}:
+    put:
+      tags:
+      - "UI_to_Stats"
+      summary: "Run a specific classifier instance on the project identified by id\
+        \ in the path. The response contains estimated class probablities and analysis\
+        \ of classifier performance."
+      operationId: "run_classifier_instance"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "x_access_token"
+        in: "header"
+        description: "Token that contains information about the user"
+        required: true
+        type: "string"
+      - name: "x_request_token"
+        in: "header"
+        description: "Token that associates messages with each other"
+        required: true
+        type: "string"
+      - name: "classifier_instance_id"
+        in: "path"
+        description: "The id of the classifier instance to run on the target domain"
+        required: true
+        type: "string"
+      - name: "project_id"
+        in: "path"
+        description: "The id of the project containing the packages"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            $ref: "#/definitions/classifier_results"
+        400:
+          description: "Unable to Run Classifier"
+        404:
+          description: "Invalid Request"
+        default:
+          description: "Unexpected Error"
+          schema:
+            $ref: "#/definitions/error"
+          x-swagger-router-controller: "swagger_server.controllers.ui_to_stats_controller"
+      x-swagger-router-controller: "swagger_server.controllers.ui_to_stats_controller"
+  /classifiers/{classifier_instance_id}:
+    get:
+      tags:
+      - "UI_to_Stats"
+      summary: "Get analysis for a specific Classifier including performance metrics."
+      operationId: "get_classifier_instance_analysis"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      - "text/html"
+      parameters:
+      - name: "x_access_token"
+        in: "header"
+        description: "Token that contains information about the user"
+        required: true
+        type: "string"
+      - name: "x_request_token"
+        in: "header"
+        description: "Token that associates messages with each other"
+        required: true
+        type: "string"
+      - name: "classifier_instance_id"
+        in: "path"
+        description: "The id of the classifier to get analysis info"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            $ref: "#/definitions/analysis_results"
+        404:
+          description: "Classifier Information Unavailable"
+        default:
+          description: "Unexpected Error"
+          schema:
+            $ref: "#/definitions/error"
+          x-swagger-router-controller: "swagger_server.controllers.ui_to_stats_controller"
+      x-swagger-router-controller: "swagger_server.controllers.ui_to_stats_controller"
+    put:
+      tags:
+      - "UI_to_Stats"
+      summary: "Edit a specific classifier from the Stats module by classifier_instance_id.\
+        \       "
+      operationId: "edit_classifier_instance"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "x_access_token"
+        in: "header"
+        description: "Token that contains information about the user"
+        required: true
+        type: "string"
+      - name: "x_request_token"
+        in: "header"
+        description: "Token that associates messages with each other"
+        required: true
+        type: "string"
+      - name: "classifier_instance_id"
+        in: "path"
+        description: "The id of the classifier instance to edit"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "classifier_instance"
+        description: "Classifier information to edit"
+        required: true
+        schema:
+          $ref: "#/definitions/classifier_instance"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            $ref: "#/definitions/create_classifier_response"
+        400:
+          description: "Unable to Edit Classifier"
+        404:
+          description: "Invalid Request"
+        default:
+          description: "Unexpected Error"
+          schema:
+            $ref: "#/definitions/error"
+          x-swagger-router-controller: "swagger_server.controllers.ui_to_stats_controller"
+      x-swagger-router-controller: "swagger_server.controllers.ui_to_stats_controller"
+    delete:
+      tags:
+      - "UI_to_Stats"
+      summary: "Delete a specific classifier from the Stats module by classifier_instance_id."
+      operationId: "delete_classifier_instance"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "x_access_token"
+        in: "header"
+        description: "Token that contains information about the user"
+        required: true
+        type: "string"
+      - name: "x_request_token"
+        in: "header"
+        description: "Token that associates messages with each other"
+        required: true
+        type: "string"
+      - name: "classifier_instance_id"
+        in: "path"
+        description: "The id of the classifier to delete"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Classifier Successfully Deleted"
+          schema:
+            $ref: "#/definitions/request_token"
+        400:
+          description: "Invalid Request"
+        404:
+          description: "Unable to Delete Classifier"
+        default:
+          description: "Unexpected Error"
+          schema:
+            $ref: "#/definitions/error"
+      x-swagger-router-controller: "swagger_server.controllers.ui_to_stats_controller"
+  /classifiers/{classifier_instance_id}/retrain:
+    put:
+      tags:
+      - "UI_to_Stats"
+      summary: "Returns new probability values if there are updates from the selected\
+        \ classifier_instance."
+      operationId: "retrain"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "x_access_token"
+        in: "header"
+        description: "Token that contains information about the user"
+        required: true
+        type: "string"
+      - name: "x_request_token"
+        in: "header"
+        description: "Token that associates messages with each other"
+        required: true
+        type: "string"
+      - name: "classifier_instance_id"
+        in: "path"
+        description: "The id of the classifier instance to run on the target domain"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "classifier_instance_data"
+        description: "Information to send close adaptive heuristic request"
+        required: true
+        schema:
+          $ref: "#/definitions/classifier_instance_data"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            $ref: "#/definitions/classifier_results"
+        400:
+          description: "Unable to Run Classifier"
+        404:
+          description: "Invalid Request"
+        default:
+          description: "Unexpected Error"
+          schema:
+            $ref: "#/definitions/error"
+      x-swagger-router-controller: "swagger_server.controllers.ui_to_stats_controller"
+  /classifiers/{classifier_instance_id}/adaptive_heuristics/close:
+    put:
+      tags:
+      - "UI_to_Stats"
+      summary: "Stop adaptive heuristic forward request. Send a request to close (set\
+        \ to false) the adaptive heuristic for the packages listed in the classifier\
+        \ instance."
+      operationId: "close_adaptive_heuristic_data_forwarding"
+      consumes:
+      - "application/json"
+      parameters:
+      - name: "x_access_token"
+        in: "header"
+        description: "Token that contains information about the user"
+        required: true
+        type: "string"
+      - name: "x_request_token"
+        in: "header"
+        description: "Token that associates messages with each other"
+        required: true
+        type: "string"
+      - name: "classifier_instance_id"
+        in: "path"
+        description: "The id of the classifier instance to run on the target domain"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            $ref: "#/definitions/close_adaptive_heuristics_response"
+        400:
+          description: "Invalid Close Request"
+        404:
+          description: "Classifier Instance Unavailable"
+        default:
+          description: "Unexpected Error"
+          schema:
+            $ref: "#/definitions/error"
+      x-swagger-router-controller: "swagger_server.controllers.ui_to_stats_controller"
+  /projects/{project_id}/packages/{package_id}/alerts:
+    put:
+      tags:
+      - "DataHub_to_Stats"
+      summary: "Forward new Alerts that have been uploaded to the DataHub and have\
+        \ a current open adaptive heuristic request for its respective package. Returns\
+        \ status message for the DataHub to track if the request was completed."
+      operationId: "send_alert_updates_for_classifier"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "x_access_token"
+        in: "header"
+        description: "Token that contains information about the user"
+        required: true
+        type: "string"
+      - name: "x_request_token"
+        in: "header"
+        description: "Token that associates messages with each other"
+        required: true
+        type: "string"
+      - name: "project_id"
+        in: "path"
+        description: "The id of the project associated with these alerts"
+        required: true
+        type: "string"
+      - name: "package_id"
+        in: "path"
+        description: "The id of the package associated with these alerts"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "multiple_alerts"
+        description: "Updated alert data"
+        required: true
+        schema:
+          $ref: "#/definitions/multiple_alerts"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            $ref: "#/definitions/alert_updates_response"
+        400:
+          description: "Unable to Upload Alerts"
+        404:
+          description: "Invalid Package"
+        default:
+          description: "Unexpected Error"
+          schema:
+            $ref: "#/definitions/error"
+      x-swagger-router-controller: "swagger_server.controllers.data_hub_to_stats_controller"
+  /packages/tools/{tool_id}:
+    put:
+      tags:
+      - "DataHub_to_Stats"
+      summary: "Send FFSA or code metrics tool info to the Stats Module. When a new\
+        \ tool is uploaded, the DataHub can send new tool info for packages with open\
+        \ adaptive heuristic requests automatically to keep the Stats Module in sync."
+      operationId: "send_new_tool"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "x_access_token"
+        in: "header"
+        description: "Token that contains information about the user"
+        required: true
+        type: "string"
+      - name: "x_request_token"
+        in: "header"
+        description: "Token that associates messages with each other"
+        required: true
+        type: "string"
+      - name: "tool_id"
+        in: "path"
+        description: "The id of the tool uploaded to the DataHub"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "packages_with_tool_data"
+        description: "Tool info, including name, version, plus FFSA checker info OR\
+          \ code metrics field info and package ids associated with this new tool."
+        required: true
+        schema:
+          $ref: "#/definitions/packages_with_tool_data"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "integer"
+        400:
+          description: "Unable to Upload Tool Information"
+        default:
+          description: "Unexpected Error"
+          schema:
+            $ref: "#/definitions/error"
+      x-swagger-router-controller: "swagger_server.controllers.data_hub_to_stats_controller"
+definitions:
+  alert:
+    type: "object"
+    required:
+    - "alert_id"
+    - "checker_id"
+    - "primary_message"
+    - "tool_id"
+    properties:
+      alert_id:
+        type: "string"
+      tool_id:
+        type: "string"
+      checker_id:
+        type: "string"
+      primary_message:
+        $ref: "#/definitions/message"
+      secondary_messages:
+        type: "array"
+        items:
+          $ref: "#/definitions/secondary_message"
+    xml:
+      name: "alert"
+  analysis_results:
+    type: "object"
+    properties:
+      classifier_instance_id:
+        type: "string"
+      classifier_analysis:
+        type: "object"
+        properties: {}
+    xml:
+      name: "analysis_results"
+    example:
+      classifier_analysis: "{}"
+      classifier_instance_id: "classifier_instance_id"
+  condition:
+    type: "object"
+    properties:
+      condition_id:
+        type: "string"
+      condition_name:
+        type: "string"
+      title:
+        type: "string"
+      platforms:
+        type: "array"
+        items:
+          type: "string"
+      condition_fields:
+        type: "object"
+        description: "Fields associated with this condition, i.e., likelihood"
+        properties: {}
+    xml:
+      name: "condition"
+  condition_languages:
+    type: "object"
+    properties:
+      condition:
+        $ref: "#/definitions/condition"
+      language_ids:
+        type: "string"
+    xml:
+      name: "condition_languages"
+  checker_mappings:
+    type: "object"
+    properties:
+      checker_id:
+        type: "string"
+      checker_name:
+        type: "string"
+      mapping_source:
+        type: "string"
+      tool_id:
+        type: "string"
+      conditions:
+        type: "array"
+        items:
+          $ref: "#/definitions/condition_languages"
+    xml:
+      name: "checker_mappings"
+  classifier_instance:
+    type: "object"
+    required:
+    - "classifier_id"
+    - "project_ids"
+    properties:
+      classifier_id:
+        type: "string"
+      classifier_type:
+        type: "string"
+      classifier_instance_name:
+        type: "string"
+      project_ids:
+        type: "array"
+        items:
+          type: "string"
+      ahpo_id:
+        type: "string"
+      ahpo_parameters:
+        type: "object"
+        additionalProperties:
+          type: "object"
+          properties: {}
+      adaptive_heuristic_id:
+        type: "string"
+      adaptive_heuristic_parameters:
+        type: "object"
+        additionalProperties:
+          type: "object"
+          properties: {}
+    xml:
+      name: "classifier_instance"
+  classifier_instance_data:
+    type: "object"
+    required:
+    - "project_id"
+    - "timestamp"
+    properties:
+      project_id:
+        type: "string"
+        description: "The id of the target project to run the classifier on"
+      timestamp:
+        type: "string"
+        format: "date-time"
+        description: "The current time"
+    xml:
+      name: "classifier_instance_data"
+  list_classifiers_response:
+    type: "object"
+    properties:
+      classifier_id:
+        type: "string"
+      classifier_type:
+        type: "string"
+      ahpos:
+        type: "array"
+        items:
+          $ref: "#/definitions/list_classifiers_response_ahpos"
+      adaptive_heuristics:
+        type: "array"
+        items:
+          $ref: "#/definitions/list_classifiers_response_adaptive_heuristics"
+    xml:
+      name: "classifier_response_object"
+    example:
+      classifier_id: "classifier_id"
+      adaptive_heuristics:
+      - adaptive_heuristic_name: "adaptive_heuristic_name"
+        adaptive_heuristic_id: "adaptive_heuristic_id"
+        adaptive_heuristic_parameters: "{}"
+      ahpos:
+      - ahpo_id: "ahpo_id"
+        ahpo_name: "ahpo_name"
+        ahpo_parameters: "{}"
+      classifier_name: "classifier_name"
+  classifier_results:
+    type: "object"
+    required:
+    - "probability_data"
+    - "project_id"
+    properties:
+      classifier_instance_id:
+        type: "string"
+      project_id:
+        type: "string"
+        description: "ID of project in the target domain"
+      probability_data:
+        type: "array"
+        items:
+          $ref: "#/definitions/classifier_results_probability_data"
+      classifier_analysis:
+        type: "object"
+        properties: {}
+    xml:
+      name: "classifier_results"
+    example:
+      probability_data:
+      - probability: 0.80082819046101150206595775671303272247314453125
+        meta_alert_id: "meta_alert_id"
+      - probability: 0.80082819046101150206595775671303272247314453125
+        meta_alert_id: "meta_alert_id"
+      project_id: "project_id"
+      classifier_analysis: "{}"
+      classifier_instance_id: "classifier_instance_id"
+  close_adaptive_heuristics_response:
+    type: "object"
+    properties:
+      classifier_instance_id:
+        type: "string"
+      message:
+        type: "string"
+    xml:
+      name: "close_adaptive_heuristics_response"
+    example:
+      message: "message"
+      classifier_instance_id: "classifier_instance_id"
+  create_classifier_response:
+    type: "object"
+    properties:
+      classifier_instance_id:
+        type: "string"
+      project_id:
+        type: "string"
+      analysis_messages:
+        type: "object"
+        description: "Additional information that will help to understand this classifier\
+          \ instance's performance"
+        properties: {}
+    xml:
+      name: "create_classifier_response"
+    example:
+      analysis_messages: "{}"
+      project_id: "project_id"
+      classifier_instance_id: "classifier_instance_id"
+  determination:
+    type: "object"
+    properties:
+      flag_list:
+        type: "array"
+        items:
+          $ref: "#/definitions/determination_flag_list"
+      verdict_list:
+        type: "array"
+        items:
+          $ref: "#/definitions/determination_verdict_list"
+      ignored_list:
+        type: "array"
+        items:
+          $ref: "#/definitions/determination_ignored_list"
+      dead_list:
+        type: "array"
+        items:
+          $ref: "#/definitions/determination_dead_list"
+      inapplicable_environment_list:
+        type: "array"
+        items:
+          $ref: "#/definitions/determination_inapplicable_environment_list"
+      dangerous_construct_list:
+        type: "array"
+        items:
+          $ref: "#/definitions/determination_dangerous_construct_list"
+      notes_list:
+        type: "array"
+        items:
+          $ref: "#/definitions/determination_notes_list"
+    xml:
+      name: "determination"
+  error:
+    required:
+    - "code"
+    - "message"
+    properties:
+      code:
+        type: "integer"
+      message:
+        type: "string"
+    xml:
+      name: "error"
+  message:
+    type: "object"
+    required:
+    - "filepath"
+    - "line_start"
+    properties:
+      line_start:
+        type: "integer"
+      line_end:
+        type: "integer"
+      filepath:
+        type: "string"
+    xml:
+      name: "message"
+  meta_alert:
+    type: "object"
+    required:
+    - "meta_alert_id"
+    properties:
+      meta_alert_id:
+        type: "string"
+      project_id:
+        type: "string"
+      condition_id:
+        type: "string"
+      filepath:
+        type: "string"
+      line_number:
+        type: "integer"
+      determination:
+        $ref: "#/definitions/determination"
+      alerts:
+        type: "array"
+        items:
+          $ref: "#/definitions/alert"
+      auto_verdict:
+        type: "object"
+        additionalProperties:
+          type: "string"
+    xml:
+      name: "meta_alert"
+  multiple_alerts:
+    type: "object"
+    properties:
+      meta_alerts:
+        type: "array"
+        items:
+          $ref: "#/definitions/meta_alert"
+      alerts:
+        type: "array"
+        items:
+          $ref: "#/definitions/alert"
+    xml:
+      name: "multiple_alerts"
+  alert_updates_response:
+    type: "object"
+    properties:
+      project_id:
+        type: "string"
+      package_id:
+        type: "string"
+    xml:
+      name: "alert_updates_response"
+    example:
+      project_id: "project_id"
+      package_id: "package_id"
+  request_token:
+    required:
+    - "request_id"
+    properties:
+      request_id:
+        type: "string"
+        description: "Id used to correlate messages with each other"
+      message:
+        type: "string"
+    xml:
+      name: "request_token"
+    example:
+      message: "message"
+      request_id: "request_id"
+  secondary_message:
+    allOf:
+    - $ref: "#/definitions/message"
+    - type: "object"
+      required:
+      - "message_text"
+      properties:
+        message_text:
+          type: "string"
+  packages_with_tool_data:
+    type: "object"
+    properties:
+      package_ids:
+        type: "array"
+        items:
+          type: "string"
+      tool_data:
+        $ref: "#/definitions/packages_with_tool_data_tool_data"
+    xml:
+      name: "packages_with_tool_data"
+  list_classifiers_response_ahpos:
+    properties:
+      ahpo_id:
+        type: "string"
+      ahpo_name:
+        type: "string"
+      ahpo_parameters:
+        type: "object"
+        properties: {}
+    example:
+      ahpo_id: "ahpo_id"
+      ahpo_name: "ahpo_name"
+      ahpo_parameters: "{}"
+  list_classifiers_response_adaptive_heuristics:
+    properties:
+      adaptive_heuristic_id:
+        type: "string"
+      adaptive_heuristic_name:
+        type: "string"
+      adaptive_heuristic_parameters:
+        type: "object"
+        properties: {}
+    example:
+      adaptive_heuristic_name: "adaptive_heuristic_name"
+      adaptive_heuristic_id: "adaptive_heuristic_id"
+      adaptive_heuristic_parameters: "{}"
+  classifier_results_probability_data:
+    properties:
+      meta_alert_id:
+        type: "string"
+      probability:
+        type: "number"
+        format: "double"
+    example:
+      probability: 0.80082819046101150206595775671303272247314453125
+      meta_alert_id: "meta_alert_id"
+  determination_flag_list:
+    properties:
+      flag:
+        type: "boolean"
+      timestamp:
+        type: "string"
+        format: "date-time"
+  determination_verdict_list:
+    properties:
+      verdict:
+        type: "string"
+      timestamp:
+        type: "string"
+        format: "date-time"
+  determination_ignored_list:
+    properties:
+      ignored:
+        type: "boolean"
+      timestamp:
+        type: "string"
+        format: "date-time"
+  determination_dead_list:
+    properties:
+      dead:
+        type: "boolean"
+      timestamp:
+        type: "string"
+        format: "date-time"
+  determination_inapplicable_environment_list:
+    properties:
+      inapplicable_environment:
+        type: "boolean"
+      timestamp:
+        type: "string"
+        format: "date-time"
+  determination_dangerous_construct_list:
+    properties:
+      dangerous_construct:
+        type: "string"
+      timestamp:
+        type: "string"
+        format: "date-time"
+  determination_notes_list:
+    properties:
+      notes:
+        type: "string"
+      timestamp:
+        type: "string"
+        format: "date-time"
+  packages_with_tool_data_tool_data:
+    properties:
+      tool_name:
+        type: "string"
+      tool_version:
+        type: "string"
+      tool_type:
+        type: "string"
+      checker_mappings:
+        type: "array"
+        items:
+          $ref: "#/definitions/checker_mappings"
+      code_metrics_data:
+        type: "object"
+        properties: {}
