@@ -1,0 +1,531 @@
+{
+  "swagger" : "2.0",
+  "info" : {
+    "description" : "This API definition facilitates auditing static analysis alerts using classifiers, optional adaptive heuristics, and alert prioritization. The API enables jump-starting labeled datasets using test suites. It is intended to enable a wide range of users (with widely varying datasets, static analysis tools, machine learning expertise, and amount of labeled data) to benefit from using classifiers and sophisticated prioritization to automatically triage static analysis alerts.",
+    "version" : "1.0.0",
+    "title" : "SCAIFE Prioritization Module API Definition",
+    "contact" : {
+      "name" : "SCAIFE Project",
+      "url" : "https://www.sei.cmu.edu/research-capabilities/all-work/display.cfm?customel_datapageid_4050=6453",
+      "email" : "lflynn@cert.org"
+    },
+    "license" : {
+      "name" : "  SCAIFE API Copyright 2007-2020 Carnegie Mellon University. All Rights Reserved.   Redistribution\nand use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:   1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.   2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.   3. Products derived from this software may not include 'Carnegie Mellon University,' 'SEI' and/or 'Software Engineering Institute' in the name of such derived product, nor shall 'Carnegie Mellon University,' 'SEI' and/or 'Software Engineering Institute' be used to endorse or promote products derived from this software without prior written permission. For written permission, please contact permission@sei.cmu.edu.   ACKNOWLEDGMENTS AND DISCLAIMERS:   This material is based upon work funded and supported by the Department of Defense under Contract No. FA8702-15-D-0002 with Carnegie Mellon University for the operation of the Software Engineering Institute, a federally funded research and development center.   The view, opinions, and/or findings contained in this material are those of the author(s) and should not be construed as an official Government position, policy, or decision, unless designated by other documentation.   NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN 'AS-IS' BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.   [DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  Please see Copyright notice for non-US Government use and distribution.   This material includes field names used in the Software Assurance Marketplace (SWAMP), a service that provides continuous software assurance capabilities to developers and researchers at https://www.mir-swamp.org/#.  Copyright © 2012-2020 The Morgridge Institute for Research, Inc. All rights reserved.   This material includes field names used in the Software Assurance Tool (SwAT), a tool that is used by analysts to analyze static analysis alerts from multiple static analysis tools. https://www.cerdec.army.mil/ Combat Capabilities Development Command (CCDC) C5ISR Center. All rights reserved.   DM19-0572   "
+    }
+  },
+  "host" : "127.0.0.1:8085",
+  "paths" : {
+    "/status" : {
+      "get" : {
+        "tags" : [ "Prioritization_Server" ],
+        "summary" : "Provides Server Status",
+        "operationId" : "get_status",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "x_request_token",
+          "in" : "header",
+          "description" : "Token that associates messages with each other",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Server Is Running",
+            "schema" : {
+              "$ref" : "#/definitions/request_token"
+            }
+          },
+          "400" : {
+            "description" : "Database Connection Lost"
+          },
+          "default" : {
+            "description" : "Unexpected Error",
+            "schema" : {
+              "$ref" : "#/definitions/error"
+            }
+          }
+        },
+        "x-swagger-router-controller" : "swagger_server.controllers.prioritization_server_controller"
+      }
+    },
+    "/priorities" : {
+      "get" : {
+        "tags" : [ "UI_to_Prioritization" ],
+        "summary" : "List all prioritization schemes",
+        "operationId" : "list_prioritizations",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "x_access_token",
+          "in" : "header",
+          "description" : "Token that contains information about the user",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "x_request_token",
+          "in" : "header",
+          "description" : "Token that associates messages with each other",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "project_id",
+          "in" : "header",
+          "description" : "ID of the project associated with the priority schemes in the list",
+          "required" : false,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "schema" : {
+              "$ref" : "#/definitions/prioritization_list"
+            }
+          },
+          "400" : {
+            "description" : "Invalid Request"
+          },
+          "401" : {
+            "description" : "Invalid Token Request"
+          },
+          "403" : {
+            "description" : "Missing Required Tokens"
+          },
+          "404" : {
+            "description" : "Prioritization Schemes Not Found"
+          },
+          "default" : {
+            "description" : "Unexpected Error",
+            "schema" : {
+              "$ref" : "#/definitions/error"
+            }
+          }
+        },
+        "x-swagger-router-controller" : "swagger_server.controllers.ui_to_prioritization_controller"
+      },
+      "post" : {
+        "tags" : [ "UI_to_Prioritization" ],
+        "summary" : "Create a new prioritization scheme",
+        "operationId" : "create_prioritization",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "x_access_token",
+          "in" : "header",
+          "description" : "Token that contains information about the user",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "x_request_token",
+          "in" : "header",
+          "description" : "Token that associates messages with each other",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "in" : "body",
+          "name" : "create_prioritization_data",
+          "description" : "Prioritization scheme to create",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/definitions/create_prioritization_data"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK, Created",
+            "schema" : {
+              "$ref" : "#/definitions/create_prioritization_response"
+            }
+          },
+          "400" : {
+            "description" : "Invalid Request"
+          },
+          "401" : {
+            "description" : "Global and Remote Flags Cannot Both be True"
+          },
+          "403" : {
+            "description" : "Missing Required Tokens"
+          },
+          "405" : {
+            "description" : "Cannot Create Prioritization Scheme"
+          },
+          "default" : {
+            "description" : "Unexpected Error",
+            "schema" : {
+              "$ref" : "#/definitions/error"
+            }
+          }
+        },
+        "x-swagger-router-controller" : "swagger_server.controllers.ui_to_prioritization_controller"
+      }
+    },
+    "/priorities/{priority_scheme_id}" : {
+      "put" : {
+        "tags" : [ "UI_to_Prioritization" ],
+        "summary" : "Update an existing prioritization scheme",
+        "operationId" : "update_prioritization",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "priority_scheme_id",
+          "in" : "path",
+          "description" : "The id of the prioritization scheme",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "x_access_token",
+          "in" : "header",
+          "description" : "Token that contains information about the user",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "x_request_token",
+          "in" : "header",
+          "description" : "Token that associates messages with each other",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "in" : "body",
+          "name" : "update_priority_data",
+          "description" : "Prioritization Scheme to update",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/definitions/update_priority_data"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "schema" : {
+              "$ref" : "#/definitions/request_token"
+            }
+          },
+          "400" : {
+            "description" : "Invalid Request"
+          },
+          "401" : {
+            "description" : "Invalid Token Request"
+          },
+          "403" : {
+            "description" : "Missing Required Tokens"
+          },
+          "404" : {
+            "description" : "Prioritization Scheme Unavailable"
+          },
+          "405" : {
+            "description" : "Cannot Update Prioritization Scheme"
+          },
+          "default" : {
+            "description" : "Unexpected Error",
+            "schema" : {
+              "$ref" : "#/definitions/error"
+            }
+          }
+        },
+        "x-swagger-router-controller" : "swagger_server.controllers.ui_to_prioritization_controller"
+      }
+    },
+    "/priorities/{priority_scheme_id}/projects/{project_id}" : {
+      "get" : {
+        "tags" : [ "UI_to_Prioritization" ],
+        "summary" : "Retrieve a specific prioritization scheme",
+        "operationId" : "get_prioritization",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "priority_scheme_id",
+          "in" : "path",
+          "description" : "The id of the prioritization scheme",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "project_id",
+          "in" : "path",
+          "description" : "The id of the project associated with this project",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "x_access_token",
+          "in" : "header",
+          "description" : "Token that contains information about the user",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "x_request_token",
+          "in" : "header",
+          "description" : "Token that associates messages with each other",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "schema" : {
+              "$ref" : "#/definitions/priority_scheme_data"
+            }
+          },
+          "400" : {
+            "description" : "Invalid Request"
+          },
+          "401" : {
+            "description" : "Invalid Token Request"
+          },
+          "403" : {
+            "description" : "Missing Required Tokens"
+          },
+          "404" : {
+            "description" : "Prioritization Scheme Unavailable"
+          },
+          "default" : {
+            "description" : "Unexpected Error",
+            "schema" : {
+              "$ref" : "#/definitions/error"
+            }
+          }
+        },
+        "x-swagger-router-controller" : "swagger_server.controllers.ui_to_prioritization_controller"
+      },
+      "delete" : {
+        "tags" : [ "UI_to_Prioritization" ],
+        "summary" : "Delete a specific prioritization scheme",
+        "operationId" : "delete_prioritization",
+        "consumes" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "priority_scheme_id",
+          "in" : "path",
+          "description" : "The id of the prioritization scheme",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "project_id",
+          "in" : "path",
+          "description" : "The id of the project associated with this project",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "x_access_token",
+          "in" : "header",
+          "description" : "Token that contains information about the user",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "x_request_token",
+          "in" : "header",
+          "description" : "Token that associates messages with each other",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "schema" : {
+              "$ref" : "#/definitions/request_token"
+            }
+          },
+          "400" : {
+            "description" : "Invalid Request"
+          },
+          "401" : {
+            "description" : "Invalid Token Request"
+          },
+          "403" : {
+            "description" : "Missing Required Tokens"
+          },
+          "405" : {
+            "description" : "Cannot Delete Prioritization Scheme"
+          },
+          "default" : {
+            "description" : "Unexpected Error",
+            "schema" : {
+              "$ref" : "#/definitions/error"
+            }
+          }
+        },
+        "x-swagger-router-controller" : "swagger_server.controllers.ui_to_prioritization_controller"
+      }
+    }
+  },
+  "definitions" : {
+    "prioritization_list" : {
+      "type" : "object",
+      "properties" : {
+        "request_id" : {
+          "type" : "string"
+        },
+        "priority_list" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/prioritization_list_priority_list"
+          }
+        }
+      },
+      "xml" : {
+        "name" : "prioritization_list"
+      },
+      "example" : {
+        "priority_list" : [ {
+          "priority_scheme_id" : "priority_scheme_id",
+          "priority_scheme_name" : "priority_scheme_name"
+        }, {
+          "priority_scheme_id" : "priority_scheme_id",
+          "priority_scheme_name" : "priority_scheme_name"
+        } ],
+        "request_id" : "request_id"
+      }
+    },
+    "create_prioritization_data" : {
+      "type" : "object",
+      "required" : [ "formula", "is_global", "is_remote", "priority_scheme_name" ],
+      "properties" : {
+        "priority_scheme_name" : {
+          "type" : "string"
+        },
+        "project_ids" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
+        },
+        "formula" : {
+          "type" : "string"
+        },
+        "weighted_columns" : {
+          "type" : "object",
+          "properties" : { }
+        },
+        "is_global" : {
+          "type" : "boolean"
+        },
+        "is_remote" : {
+          "type" : "boolean"
+        }
+      },
+      "xml" : {
+        "name" : "create_prioritization_data"
+      }
+    },
+    "create_prioritization_response" : {
+      "type" : "object",
+      "properties" : {
+        "priority_scheme_id" : {
+          "type" : "string"
+        },
+        "priority_scheme_name" : {
+          "type" : "string"
+        },
+        "request_id" : {
+          "type" : "string"
+        }
+      },
+      "xml" : {
+        "name" : "create_prioritization_response"
+      },
+      "example" : {
+        "priority_scheme_id" : "priority_scheme_id",
+        "priority_scheme_name" : "priority_scheme_name",
+        "request_id" : "request_id"
+      }
+    },
+    "update_priority_data" : {
+      "type" : "object",
+      "required" : [ "priority_scheme_name" ],
+      "properties" : {
+        "project_ids" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
+        },
+        "priority_scheme_name" : {
+          "type" : "string"
+        },
+        "formula" : {
+          "type" : "string"
+        },
+        "weighted_columns" : {
+          "type" : "object",
+          "properties" : { }
+        }
+      },
+      "xml" : {
+        "name" : "update_priority_data"
+      }
+    },
+    "priority_scheme_data" : {
+      "type" : "object",
+      "required" : [ "formula", "priority_scheme_name" ],
+      "properties" : {
+        "priority_scheme_name" : {
+          "type" : "string"
+        },
+        "formula" : {
+          "type" : "string"
+        },
+        "weighted_columns" : {
+          "type" : "object",
+          "properties" : { }
+        },
+        "is_global" : {
+          "type" : "boolean"
+        },
+        "is_remote" : {
+          "type" : "boolean"
+        },
+        "request_id" : {
+          "type" : "string"
+        }
+      },
+      "xml" : {
+        "name" : "priority_scheme_data"
+      },
+      "example" : {
+        "priority_scheme_name" : "priority_scheme_name",
+        "is_remote" : true,
+        "formula" : "formula",
+        "is_global" : true,
+        "request_id" : "request_id",
+        "weighted_columns" : "{}"
+      }
+    },
+    "error" : {
+      "required" : [ "code", "message" ],
+      "properties" : {
+        "code" : {
+          "type" : "integer"
+        },
+        "message" : {
+          "type" : "string"
+        }
+      },
+      "xml" : {
+        "name" : "error"
+      }
+    },
+    "request_token" : {
+      "properties" : {
+        "request_id" : {
+          "type" : "string"
+        },
+        "message" : {
+          "type" : "string"
+        }
+      },
+      "example" : {
+        "request_id" : "request_id",
+        "message" : "message"
+      }
+    },
+    "prioritization_list_priority_list" : {
+      "properties" : {
+        "priority_scheme_id" : {
+          "type" : "string"
+        },
+        "priority_scheme_name" : {
+          "type" : "string"
+        }
+      },
+      "example" : {
+        "priority_scheme_id" : "priority_scheme_id",
+        "priority_scheme_name" : "priority_scheme_name"
+      }
+    }
+  }
+}

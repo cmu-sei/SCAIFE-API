@@ -1,0 +1,321 @@
+swagger: '2.0'
+info:
+  description: >-
+    This API definition facilitates auditing static analysis alerts using
+    classifiers, optional adaptive heuristics, and alert prioritization. The API
+    enables jump-starting labeled datasets using test suites. It is intended to
+    enable a wide range of users (with widely varying datasets, static analysis
+    tools, machine learning expertise, and amount of labeled data) to benefit
+    from using classifiers and sophisticated prioritization to automatically
+    triage static analysis alerts.
+  version: 1.0.0
+  title: SCAIFE Registration and Login Module API Definition
+  contact:
+    name: SCAIFE Project
+    url: >-
+      https://www.sei.cmu.edu/research-capabilities/all-work/display.cfm?customel_datapageid_4050=6453
+    email: lflynn@cert.org
+  license:
+    name: >2-
+        SCAIFE API Copyright 2007-2020 Carnegie Mellon University. All Rights Reserved.   Redistribution
+      and use in source and binary forms, with or without modification, are permitted
+      provided that the following conditions are met:   1. Redistributions of source
+      code must retain the above copyright notice, this list of conditions and the
+      following disclaimer.   2. Redistributions in binary form must reproduce the
+      above copyright notice, this list of conditions and the following disclaimer
+      in the documentation and/or other materials provided with the distribution.   3.
+      Products derived from this software may not include 'Carnegie Mellon University,'
+      'SEI' and/or 'Software Engineering Institute' in the name of such derived product,
+      nor shall 'Carnegie Mellon University,' 'SEI' and/or 'Software Engineering Institute'
+      be used to endorse or promote products derived from this software without prior
+      written permission. For written permission, please contact permission@sei.cmu.edu.   ACKNOWLEDGMENTS
+      AND DISCLAIMERS:   This material is based upon work funded and supported by
+      the Department of Defense under Contract No. FA8702-15-D-0002 with Carnegie
+      Mellon University for the operation of the Software Engineering Institute, a
+      federally funded research and development center.   The view, opinions, and/or
+      findings contained in this material are those of the author(s) and should not
+      be construed as an official Government position, policy, or decision, unless
+      designated by other documentation.   NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY
+      AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN 'AS-IS' BASIS.
+      CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED
+      OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS
+      FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF
+      THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND
+      WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.   [DISTRIBUTION
+      STATEMENT A] This material has been approved for public release and unlimited
+      distribution.  Please see Copyright notice for non-US Government use and distribution.   This
+      material includes field names used in the Software Assurance Marketplace (SWAMP),
+      a service that provides continuous software assurance capabilities to developers
+      and researchers at https://www.mir-swamp.org/#.  Copyright © 2012-2020 The Morgridge
+      Institute for Research, Inc. All rights reserved.   This material includes field
+      names used in the Software Assurance Tool (SwAT), a tool that is used by analysts
+      to analyze static analysis alerts from multiple static analysis tools. https://www.cerdec.army.mil/
+      Combat Capabilities Development Command (CCDC) C5ISR Center. All rights reserved.   DM19-0572   
+host: '127.0.0.1:8087'
+paths:
+  /status:
+    get:
+      tags:
+      - Registration_Server
+      summary: Provides Server Status
+      operationId: get_status
+      produces:
+      - application/json
+      parameters:
+      - name: x_request_token
+        in: header
+        description: Token that associates messages with each other
+        required: true
+        type: string
+      responses:
+        '200':
+          description: Server Is Running
+          schema:
+            $ref: '#/definitions/request_token'
+        '400':
+          description: Database Connection Lost
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+      x-swagger-router-controller: swagger_server.controllers.registration_server_controller
+  /register:
+    post:
+      tags:
+      - UI_to_Registration
+      summary: Registration page; Create new users in the SCAIFE system
+      operationId: register_users
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - in: body
+        name: user_information
+        description: User information
+        required: true
+        schema:
+          $ref: '#/definitions/user_information'
+      responses:
+        '201':
+          description: User Created
+        '400':
+          description: Invalid Request
+        '405':
+          description: Registration Unavailable
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+      x-swagger-router-controller: swagger_server.controllers.ui_to_registration_controller
+  /login:
+    post:
+      tags:
+      - UI_to_Registration
+      summary: Login page; Authenticate to the SCAIFE system
+      operationId: login_user
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - in: body
+        name: login_credentials
+        description: Login credentials for the user.
+        required: false
+        schema:
+          $ref: '#/definitions/login_credentials'
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/access_token'
+        '400':
+          description: Invalid Request
+        '405':
+          description: Login Unavailable
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+      x-swagger-router-controller: swagger_server.controllers.ui_to_registration_controller
+  /logout:
+    post:
+      tags:
+      - UI_to_Registration
+      summary: Logout of the SCAIFE system
+      operationId: logout_user
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Access token from login, verifying the user
+        required: true
+        type: string
+      - name: x_request_token
+        in: header
+        description: Token that associates messages with each other
+        required: true
+        type: string
+      responses:
+        '200':
+          description: OK, User Successfully Logged Out
+          schema:
+            $ref: '#/definitions/request_token'
+        '400':
+          description: Invalid Request
+        '405':
+          description: Logout Unavailable
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+      x-swagger-router-controller: swagger_server.controllers.ui_to_registration_controller
+  '/servers/{server_name}':
+    get:
+      tags:
+      - UI_to_Registration
+      summary: Get access token to use other servers
+      operationId: get_server_access
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: server_name
+        in: path
+        description: >-
+          Name of the server to grant access to, expected values [statistics,
+          datahub, prioritization]
+        required: true
+        type: string
+      - name: x_access_token
+        in: header
+        description: Access token verifying user
+        required: true
+        type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/access_token'
+        '400':
+          description: Invalid Request
+        '404':
+          description: Server Access Unavailable
+        '405':
+          description: Invalid Token Request
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+      x-swagger-router-controller: swagger_server.controllers.ui_to_registration_controller
+  '/authenticate/{server_name}':
+    get:
+      tags:
+      - Registration_Server
+      summary: Authenticate the access token for the servers
+      operationId: authenticate_server_access
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: server_name
+        in: path
+        description: >-
+          Name of the server to verify access to, expected values [statistics,
+          datahub, prioritization]
+        required: true
+        type: string
+      - name: x_access_token
+        in: header
+        description: Access token verifying user
+        required: true
+        type: string
+      - name: x_request_token
+        in: header
+        description: Token that associates messages with each other
+        required: true
+        type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/request_token'
+        '400':
+          description: Invalid Request, Token Invalid
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/error'
+      x-swagger-router-controller: swagger_server.controllers.registration_server_controller
+definitions:
+  user_information:
+    type: object
+    required:
+    - organization_name
+    - password
+    - username
+    properties:
+      first_name:
+        type: string
+      last_name:
+        type: string
+      organization_name:
+        type: string
+      username:
+        type: string
+      password:
+        type: string
+    example:
+      first_name: Ebonie
+      last_name: McNeil
+      organization_name: Software Engineering Institute
+      username: username
+      password: password
+    xml:
+      name: user_information
+  login_credentials:
+    type: object
+    properties:
+      username:
+        type: string
+      password:
+        type: string
+    example:
+      username: username
+      password: password
+    xml:
+      name: login_credentials
+  access_token:
+    type: object
+    properties:
+      x_access_token:
+        type: string
+    example:
+      x_access_token: x_access_token
+    xml:
+      name: access_token
+  error:
+    required:
+    - code
+    - message
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
+    xml:
+      name: error
+  request_token:
+    properties:
+      request_id:
+        type: string
+      message:
+        type: string
+    xml:
+      name: request_token

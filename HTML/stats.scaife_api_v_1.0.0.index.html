@@ -1,0 +1,1444 @@
+<!doctype html>
+<html>
+  <head>
+    <title>SCAIFE API Definition</title>
+    <style type="text/css">
+      body {
+	font-family: Trebuchet MS, sans-serif;
+	font-size: 15px;
+	color: #444;
+	margin-right: 24px;
+}
+
+h1	{
+	font-size: 25px;
+}
+h2	{
+	font-size: 20px;
+}
+h3	{
+	font-size: 16px;
+	font-weight: bold;
+}
+hr	{
+	height: 1px;
+	border: 0;
+	color: #ddd;
+	background-color: #ddd;
+}
+
+.app-desc {
+  clear: both;
+  margin-left: 20px;
+}
+.param-name {
+  width: 100%;
+}
+.license-info {
+  margin-left: 20px;
+}
+
+.license-url {
+  margin-left: 20px;
+}
+
+.model {
+  margin: 0 0 0px 20px;
+}
+
+.method {
+  margin-left: 20px;
+}
+
+.method-notes	{
+	margin: 10px 0 20px 0;
+	font-size: 90%;
+	color: #555;
+}
+
+pre {
+  padding: 10px;
+  margin-bottom: 2px;
+}
+
+.http-method {
+ text-transform: uppercase;
+}
+
+pre.get {
+  background-color: #0f6ab4;
+}
+
+pre.post {
+  background-color: #10a54a;
+}
+
+pre.put {
+  background-color: #c5862b;
+}
+
+pre.delete {
+  background-color: #a41e22;
+}
+
+.huge	{
+	color: #fff;
+}
+
+pre.example {
+  background-color: #f3f3f3;
+  padding: 10px;
+  border: 1px solid #ddd;
+}
+
+code {
+  white-space: pre;
+}
+
+.nickname {
+  font-weight: bold;
+}
+
+.method-path {
+  font-size: 1.5em;
+  background-color: #0f6ab4;
+}
+
+.up {
+  float:right;
+}
+
+.parameter {
+  width: 500px;
+}
+
+.param {
+  width: 500px;
+  padding: 10px 0 0 20px;
+  font-weight: bold;
+}
+
+.param-desc {
+  width: 700px;
+  padding: 0 0 0 20px;
+  color: #777;
+}
+
+.param-type {
+  font-style: italic;
+}
+
+.param-enum-header {
+width: 700px;
+padding: 0 0 0 60px;
+color: #777;
+font-weight: bold;
+}
+
+.param-enum {
+width: 700px;
+padding: 0 0 0 80px;
+color: #777;
+font-style: italic;
+}
+
+.field-label {
+  padding: 0;
+  margin: 0;
+  clear: both;
+}
+
+.field-items	{
+	padding: 0 0 15px 0;
+	margin-bottom: 15px;
+}
+
+.return-type {
+  clear: both;
+  padding-bottom: 10px;
+}
+
+.param-header {
+  font-weight: bold;
+}
+
+.method-tags {
+  text-align: right;
+}
+
+.method-tag {
+  background: none repeat scroll 0% 0% #24A600;
+  border-radius: 3px;
+  padding: 2px 10px;
+  margin: 2px;
+  color: #FFF;
+  display: inline-block;
+  text-decoration: none;
+}
+
+    </style>
+  </head>
+  <body>
+  <h1>SCAIFE API Definition</h1>
+    <div class="app-desc">This API definition facilitates auditing static analysis alerts using classifiers, optional adaptive heuristics, and alert prioritization. The API enables jump-starting labeled datasets using test suites. It is intended to enable a wide range of users (with widely varying datasets, static analysis tools, machine learning expertise, and amount of labeled data) to benefit from using classifiers and sophisticated prioritization to automatically triage static analysis alerts.</div>
+    <div class="app-desc">More information: <a href="https://www.sei.cmu.edu/research-capabilities/all-work/display.cfm?customel_datapageid_4050=6453">https://www.sei.cmu.edu/research-capabilities/all-work/display.cfm?customel_datapageid_4050=6453</a></div>
+    <div class="app-desc">Contact Info: <a href="lflynn@cert.org">lflynn@cert.org</a></div>
+    <div class="app-desc">Version: 1.0.0</div>
+    <div class="app-desc">BasePath:</div>
+    <div class="license-info">SCAIFE API Copyright 2007-2020 Carnegie Mellon University. All Rights Reserved.   Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:   1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.   2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.   3. Products derived from this software may not include 'Carnegie Mellon University,' 'SEI' and/or 'Software Engineering Institute' in the name of such derived product, nor shall 'Carnegie Mellon University,' 'SEI' and/or 'Software Engineering Institute' be used to endorse or promote products derived from this software without prior written permission. For written permission, please contact permission@sei.cmu.edu.   ACKNOWLEDGMENTS AND DISCLAIMERS:   This material is based upon work funded and supported by the Department of Defense under Contract No. FA8702-15-D-0002 with Carnegie Mellon University for the operation of the Software Engineering Institute, a federally funded research and development center.   The view, opinions, and/or findings contained in this material are those of the author(s) and should not be construed as an official Government position, policy, or decision, unless designated by other documentation.   NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN 'AS-IS' BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.   [DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  Please see Copyright notice for non-US Government use and distribution.   This material includes field names used in the Software Assurance Marketplace (SWAMP), a service that provides continuous software assurance capabilities to developers and researchers at https://www.mir-swamp.org/#.  Copyright © 2012-2020 The Morgridge Institute for Research, Inc. All rights reserved.   This material includes field names used in the Software Assurance Tool (SwAT), a tool that is used by analysts to analyze static analysis alerts from multiple static analysis tools. https://www.cerdec.army.mil/ Combat Capabilities Development Command (CCDC) C5ISR Center. All rights reserved.   DM19-0572</div>
+    <div class="license-url">http://apache.org/licenses/LICENSE-2.0.html</div>
+  <h2>Access</h2>
+
+  <h2><a name="__Methods">Methods</a></h2>
+  [ Jump to <a href="#__Models">Models</a> ]
+
+  <h3>Table of Contents </h3>
+  <div class="method-summary"></div>
+  <h4><a href="#DataHubToStats">DataHubToStats</a></h4>
+  <ul>
+  <li><a href="#sendAlertUpdatesForClassifier"><code><span class="http-method">put</span> /projects/{project_id}/packages/{package_id}/alerts</code></a></li>
+  <li><a href="#sendNewTool"><code><span class="http-method">put</span> /packages/tools/{tool_id}</code></a></li>
+  </ul>
+  <h4><a href="#StatsServer">StatsServer</a></h4>
+  <ul>
+  <li><a href="#getStatus"><code><span class="http-method">get</span> /status</code></a></li>
+  </ul>
+  <h4><a href="#UIToStats">UIToStats</a></h4>
+  <ul>
+  <li><a href="#closeAdaptiveHeuristicDataForwarding"><code><span class="http-method">put</span> /classifiers/{classifier_instance_id}/adaptive_heuristics/close</code></a></li>
+  <li><a href="#createClassifierInstance"><code><span class="http-method">post</span> /classifiers</code></a></li>
+  <li><a href="#deleteClassifierInstance"><code><span class="http-method">delete</span> /classifiers/{classifier_instance_id}</code></a></li>
+  <li><a href="#editClassifierInstance"><code><span class="http-method">put</span> /classifiers/{classifier_instance_id}</code></a></li>
+  <li><a href="#getClassifierInstanceAnalysis"><code><span class="http-method">get</span> /classifiers/{classifier_instance_id}</code></a></li>
+  <li><a href="#listClassifiers"><code><span class="http-method">get</span> /classifiers</code></a></li>
+  <li><a href="#retrain"><code><span class="http-method">put</span> /classifiers/{classifier_instance_id}/retrain</code></a></li>
+  <li><a href="#runClassifierInstance"><code><span class="http-method">put</span> /classifiers/{classifier_instance_id}/projects/{project_id}</code></a></li>
+  </ul>
+
+  <h1><a name="DataHubToStats">DataHubToStats</a></h1>
+  <div class="method"><a name="sendAlertUpdatesForClassifier"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="put"><code class="huge"><span class="http-method">put</span> /projects/{project_id}/packages/{package_id}/alerts</code></pre></div>
+    <div class="method-summary">Forward new Alerts that have been uploaded to the DataHub and have a current open adaptive heuristic request for its respective package. Returns status message for the DataHub to track if the request was completed. (<span class="nickname">sendAlertUpdatesForClassifier</span>)</div>
+    <div class="method-notes"></div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">project_id (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The id of the project associated with these alerts </div><div class="param">package_id (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The id of the package associated with these alerts </div>
+    </div>  <!-- field-items -->
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Request body</h3>
+    <div class="field-items">
+      <div class="param">multiple_alerts <a href="#multiple_alerts">multiple_alerts</a> (required)</div>
+
+      <div class="param-desc"><span class="param-type">Body Parameter</span> &mdash; Updated alert data </div>
+
+    </div>  <!-- field-items -->
+
+    <h3 class="field-label">Request headers</h3>
+    <div class="field-items">
+      
+    </div>  <!-- field-items -->
+
+
+
+    <h3 class="field-label">Return type</h3>
+    <div class="return-type">
+      <a href="#alert_updates_response">alert_updates_response</a>
+      
+    </div>
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+    <h3 class="field-label">Example data</h3>
+    <div class="example-data-content-type">Content-Type: application/json</div>
+    <pre class="example"><code>{
+  "project_id" : "project_id",
+  "package_id" : "package_id"
+}</code></pre>
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    OK
+        <a href="#alert_updates_response">alert_updates_response</a>
+    <h4 class="field-label">400</h4>
+    Unable to Upload Alerts
+        <a href="#"></a>
+    <h4 class="field-label">401</h4>
+    Invalid Token Request
+        <a href="#"></a>
+    <h4 class="field-label">403</h4>
+    Missing Required Tokens
+        <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    Required Resources Not Found
+        <a href="#"></a>
+    <h4 class="field-label">default</h4>
+    Unexpected Error
+        <a href="#error">error</a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="sendNewTool"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="put"><code class="huge"><span class="http-method">put</span> /packages/tools/{tool_id}</code></pre></div>
+    <div class="method-summary">Send FFSA or code metrics tool info to the Stats Module. When a new tool is uploaded, the DataHub can send new tool info for packages with open adaptive heuristic requests automatically to keep the Stats Module in sync. (<span class="nickname">sendNewTool</span>)</div>
+    <div class="method-notes"></div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">tool_id (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The id of the tool uploaded to the DataHub </div>
+    </div>  <!-- field-items -->
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Request body</h3>
+    <div class="field-items">
+      <div class="param">packages_with_tool_data <a href="#packages_with_tool_data">packages_with_tool_data</a> (required)</div>
+
+      <div class="param-desc"><span class="param-type">Body Parameter</span> &mdash; Tool info, including name, version, plus FFSA checker info OR code metrics field info and package ids associated with this new tool. </div>
+
+    </div>  <!-- field-items -->
+
+    <h3 class="field-label">Request headers</h3>
+    <div class="field-items">
+      
+    </div>  <!-- field-items -->
+
+
+
+    <h3 class="field-label">Return type</h3>
+    <div class="return-type">
+      <a href="#request_token">request_token</a>
+      
+    </div>
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+    <h3 class="field-label">Example data</h3>
+    <div class="example-data-content-type">Content-Type: application/json</div>
+    <pre class="example"><code>{
+  "message" : "message",
+  "request_id" : "request_id"
+}</code></pre>
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    OK
+        <a href="#request_token">request_token</a>
+    <h4 class="field-label">400</h4>
+    Invalid Request
+        <a href="#"></a>
+    <h4 class="field-label">401</h4>
+    Invalid Token Request
+        <a href="#"></a>
+    <h4 class="field-label">403</h4>
+    Missing Required Tokens
+        <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    Package Not Found
+        <a href="#"></a>
+    <h4 class="field-label">default</h4>
+    Unexpected Error
+        <a href="#error">error</a>
+  </div> <!-- method -->
+  <hr/>
+  <h1><a name="StatsServer">StatsServer</a></h1>
+  <div class="method"><a name="getStatus"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /status</code></pre></div>
+    <div class="method-summary">Provides Server Status (<span class="nickname">getStatus</span>)</div>
+    <div class="method-notes"></div>
+
+
+
+
+    <h3 class="field-label">Request headers</h3>
+    <div class="field-items">
+      
+    </div>  <!-- field-items -->
+
+
+
+    <h3 class="field-label">Return type</h3>
+    <div class="return-type">
+      <a href="#request_token">request_token</a>
+      
+    </div>
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+    <h3 class="field-label">Example data</h3>
+    <div class="example-data-content-type">Content-Type: application/json</div>
+    <pre class="example"><code>{
+  "message" : "message",
+  "request_id" : "request_id"
+}</code></pre>
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    Server Is Running
+        <a href="#request_token">request_token</a>
+    <h4 class="field-label">400</h4>
+    Database Connection Lost
+        <a href="#"></a>
+    <h4 class="field-label">default</h4>
+    Unexpected Error
+        <a href="#error">error</a>
+  </div> <!-- method -->
+  <hr/>
+  <h1><a name="UIToStats">UIToStats</a></h1>
+  <div class="method"><a name="closeAdaptiveHeuristicDataForwarding"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="put"><code class="huge"><span class="http-method">put</span> /classifiers/{classifier_instance_id}/adaptive_heuristics/close</code></pre></div>
+    <div class="method-summary">Stop adaptive heuristic forward request. Send a request to close (set to false) the adaptive heuristic for the packages listed in the classifier instance. (<span class="nickname">closeAdaptiveHeuristicDataForwarding</span>)</div>
+    <div class="method-notes"></div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">classifier_instance_id (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The id of the classifier instance to run on the target domain </div>
+    </div>  <!-- field-items -->
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+
+    <h3 class="field-label">Request headers</h3>
+    <div class="field-items">
+      
+    </div>  <!-- field-items -->
+
+
+
+    <h3 class="field-label">Return type</h3>
+    <div class="return-type">
+      <a href="#close_adaptive_heuristics_response">close_adaptive_heuristics_response</a>
+      
+    </div>
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+    <h3 class="field-label">Example data</h3>
+    <div class="example-data-content-type">Content-Type: application/json</div>
+    <pre class="example"><code>{
+  "message" : "message",
+  "classifier_instance_id" : "classifier_instance_id"
+}</code></pre>
+
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    OK
+        <a href="#close_adaptive_heuristics_response">close_adaptive_heuristics_response</a>
+    <h4 class="field-label">400</h4>
+    Invalid Close Request
+        <a href="#"></a>
+    <h4 class="field-label">401</h4>
+    Invalid Token Request
+        <a href="#"></a>
+    <h4 class="field-label">403</h4>
+    Missing Required Tokens
+        <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    Classifier Instance Unavailable
+        <a href="#"></a>
+    <h4 class="field-label">default</h4>
+    Unexpected Error
+        <a href="#error">error</a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="createClassifierInstance"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="post"><code class="huge"><span class="http-method">post</span> /classifiers</code></pre></div>
+    <div class="method-summary">Create a new classifier instance. Send Classifier information including Automated Hyper-Parameter Optimization (AHPO) and Adaptive Heuristics to the Stats Module along with package_ids for packages to use in creating/training a classifier. Returns an id that is used to then run the classifier and any  additional information for the classifier. (<span class="nickname">createClassifierInstance</span>)</div>
+    <div class="method-notes"></div>
+
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Request body</h3>
+    <div class="field-items">
+      <div class="param">classifier_instance <a href="#classifier_instance">classifier_instance</a> (required)</div>
+
+      <div class="param-desc"><span class="param-type">Body Parameter</span> &mdash; Classifier information to create </div>
+
+    </div>  <!-- field-items -->
+
+    <h3 class="field-label">Request headers</h3>
+    <div class="field-items">
+      
+    </div>  <!-- field-items -->
+
+
+
+    <h3 class="field-label">Return type</h3>
+    <div class="return-type">
+      <a href="#create_classifier_response">create_classifier_response</a>
+      
+    </div>
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+    <h3 class="field-label">Example data</h3>
+    <div class="example-data-content-type">Content-Type: application/json</div>
+    <pre class="example"><code>{
+  "analysis_messages" : "{}",
+  "project_id" : "project_id",
+  "classifier_instance_id" : "classifier_instance_id"
+}</code></pre>
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    OK
+        <a href="#create_classifier_response">create_classifier_response</a>
+    <h4 class="field-label">400</h4>
+    Unable to Create Classifier
+        <a href="#"></a>
+    <h4 class="field-label">401</h4>
+    Invalid Token Request
+        <a href="#"></a>
+    <h4 class="field-label">403</h4>
+    Missing Required Tokens
+        <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    Required Resources Not Found
+        <a href="#"></a>
+    <h4 class="field-label">422</h4>
+    Data Lacks Verdicts Labeled 'True' and 'False'
+        <a href="#"></a>
+    <h4 class="field-label">501</h4>
+    Error Retrieving DataHub Information
+        <a href="#"></a>
+    <h4 class="field-label">default</h4>
+    Unexpected Error
+        <a href="#error">error</a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="deleteClassifierInstance"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="delete"><code class="huge"><span class="http-method">delete</span> /classifiers/{classifier_instance_id}</code></pre></div>
+    <div class="method-summary">Delete a specific classifier from the Stats module by classifier_instance_id. (<span class="nickname">deleteClassifierInstance</span>)</div>
+    <div class="method-notes"></div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">classifier_instance_id (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The id of the classifier to delete </div>
+    </div>  <!-- field-items -->
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+
+    <h3 class="field-label">Request headers</h3>
+    <div class="field-items">
+      
+    </div>  <!-- field-items -->
+
+
+
+    <h3 class="field-label">Return type</h3>
+    <div class="return-type">
+      <a href="#request_token">request_token</a>
+      
+    </div>
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+    <h3 class="field-label">Example data</h3>
+    <div class="example-data-content-type">Content-Type: application/json</div>
+    <pre class="example"><code>{
+  "message" : "message",
+  "request_id" : "request_id"
+}</code></pre>
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    Classifier Successfully Deleted
+        <a href="#request_token">request_token</a>
+    <h4 class="field-label">400</h4>
+    Invalid Request
+        <a href="#"></a>
+    <h4 class="field-label">401</h4>
+    Invalid Token Request
+        <a href="#"></a>
+    <h4 class="field-label">403</h4>
+    Missing Required Tokens
+        <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    Unable to Delete Classifier
+        <a href="#"></a>
+    <h4 class="field-label">default</h4>
+    Unexpected Error
+        <a href="#error">error</a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="editClassifierInstance"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="put"><code class="huge"><span class="http-method">put</span> /classifiers/{classifier_instance_id}</code></pre></div>
+    <div class="method-summary">Edit a specific classifier from the Stats module by classifier_instance_id. (<span class="nickname">editClassifierInstance</span>)</div>
+    <div class="method-notes"></div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">classifier_instance_id (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The id of the classifier instance to edit </div>
+    </div>  <!-- field-items -->
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Request body</h3>
+    <div class="field-items">
+      <div class="param">classifier_instance <a href="#classifier_instance">classifier_instance</a> (required)</div>
+
+      <div class="param-desc"><span class="param-type">Body Parameter</span> &mdash; Classifier information to edit </div>
+
+    </div>  <!-- field-items -->
+
+    <h3 class="field-label">Request headers</h3>
+    <div class="field-items">
+      
+    </div>  <!-- field-items -->
+
+
+
+    <h3 class="field-label">Return type</h3>
+    <div class="return-type">
+      <a href="#create_classifier_response">create_classifier_response</a>
+      
+    </div>
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+    <h3 class="field-label">Example data</h3>
+    <div class="example-data-content-type">Content-Type: application/json</div>
+    <pre class="example"><code>{
+  "analysis_messages" : "{}",
+  "project_id" : "project_id",
+  "classifier_instance_id" : "classifier_instance_id"
+}</code></pre>
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    OK
+        <a href="#create_classifier_response">create_classifier_response</a>
+    <h4 class="field-label">400</h4>
+    Unable to Edit Classifier
+        <a href="#"></a>
+    <h4 class="field-label">401</h4>
+    Invalid Token Request
+        <a href="#"></a>
+    <h4 class="field-label">403</h4>
+    Missing Required Tokens
+        <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    Required Resources Not Found
+        <a href="#"></a>
+    <h4 class="field-label">422</h4>
+    Data Lacks Verdicts Labeled 'True' and 'False'
+        <a href="#"></a>
+    <h4 class="field-label">501</h4>
+    Error Retrieving DataHub Information
+        <a href="#"></a>
+    <h4 class="field-label">default</h4>
+    Unexpected Error
+        <a href="#error">error</a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="getClassifierInstanceAnalysis"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /classifiers/{classifier_instance_id}</code></pre></div>
+    <div class="method-summary">Get analysis for a specific Classifier including performance metrics. (<span class="nickname">getClassifierInstanceAnalysis</span>)</div>
+    <div class="method-notes"></div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">classifier_instance_id (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The id of the classifier to get analysis info </div>
+    </div>  <!-- field-items -->
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+
+    <h3 class="field-label">Request headers</h3>
+    <div class="field-items">
+      
+    </div>  <!-- field-items -->
+
+
+
+    <h3 class="field-label">Return type</h3>
+    <div class="return-type">
+      <a href="#analysis_results">analysis_results</a>
+      
+    </div>
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+    <h3 class="field-label">Example data</h3>
+    <div class="example-data-content-type">Content-Type: application/json</div>
+    <pre class="example"><code>{
+  "classifier_analysis" : "{}",
+  "classifier_instance_id" : "classifier_instance_id"
+}</code></pre>
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+      <li><code>text/html</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    OK
+        <a href="#analysis_results">analysis_results</a>
+    <h4 class="field-label">400</h4>
+    Invalid Request
+        <a href="#"></a>
+    <h4 class="field-label">401</h4>
+    Invalid Token Request
+        <a href="#"></a>
+    <h4 class="field-label">403</h4>
+    Missing Required Tokens
+        <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    Classifier Information Unavailable
+        <a href="#"></a>
+    <h4 class="field-label">default</h4>
+    Unexpected Error
+        <a href="#error">error</a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="listClassifiers"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /classifiers</code></pre></div>
+    <div class="method-summary">List all classifiers and their associated data. Use the ids returned from this request to work with classifiers. (<span class="nickname">listClassifiers</span>)</div>
+    <div class="method-notes"></div>
+
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+
+    <h3 class="field-label">Request headers</h3>
+    <div class="field-items">
+      
+    </div>  <!-- field-items -->
+
+
+
+    <h3 class="field-label">Return type</h3>
+    <div class="return-type">
+      array[<a href="#list_classifiers_response">list_classifiers_response</a>]
+      
+    </div>
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+    <h3 class="field-label">Example data</h3>
+    <div class="example-data-content-type">Content-Type: application/json</div>
+    <pre class="example"><code>[ {
+  "classifier_id" : "classifier_id",
+  "adaptive_heuristics" : [ {
+    "adaptive_heuristic_name" : "adaptive_heuristic_name",
+    "adaptive_heuristic_id" : "adaptive_heuristic_id",
+    "adaptive_heuristic_parameters" : "{}"
+  } ],
+  "ahpos" : [ {
+    "ahpo_id" : "ahpo_id",
+    "ahpo_name" : "ahpo_name",
+    "ahpo_parameters" : "{}"
+  } ],
+  "classifier_name" : "classifier_name"
+}, {
+  "classifier_id" : "classifier_id",
+  "adaptive_heuristics" : [ {
+    "adaptive_heuristic_name" : "adaptive_heuristic_name",
+    "adaptive_heuristic_id" : "adaptive_heuristic_id",
+    "adaptive_heuristic_parameters" : "{}"
+  } ],
+  "ahpos" : [ {
+    "ahpo_id" : "ahpo_id",
+    "ahpo_name" : "ahpo_name",
+    "ahpo_parameters" : "{}"
+  } ],
+  "classifier_name" : "classifier_name"
+} ]</code></pre>
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    OK
+        
+    <h4 class="field-label">400</h4>
+    Invalid Request
+        <a href="#"></a>
+    <h4 class="field-label">401</h4>
+    Invalid Token Request
+        <a href="#"></a>
+    <h4 class="field-label">403</h4>
+    Missing Required Tokens
+        <a href="#"></a>
+    <h4 class="field-label">default</h4>
+    Unexpected Error
+        <a href="#error">error</a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="retrain"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="put"><code class="huge"><span class="http-method">put</span> /classifiers/{classifier_instance_id}/retrain</code></pre></div>
+    <div class="method-summary">Returns new probability values if there are updates from the selected classifier_instance. (<span class="nickname">retrain</span>)</div>
+    <div class="method-notes"></div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">classifier_instance_id (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The id of the classifier instance to run on the target domain </div>
+    </div>  <!-- field-items -->
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Request body</h3>
+    <div class="field-items">
+      <div class="param">classifier_instance_data <a href="#classifier_instance_data">classifier_instance_data</a> (required)</div>
+
+      <div class="param-desc"><span class="param-type">Body Parameter</span> &mdash; Information to send close adaptive heuristic request </div>
+
+    </div>  <!-- field-items -->
+
+    <h3 class="field-label">Request headers</h3>
+    <div class="field-items">
+      
+    </div>  <!-- field-items -->
+
+
+
+    <h3 class="field-label">Return type</h3>
+    <div class="return-type">
+      <a href="#classifier_results">classifier_results</a>
+      
+    </div>
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+    <h3 class="field-label">Example data</h3>
+    <div class="example-data-content-type">Content-Type: application/json</div>
+    <pre class="example"><code>{
+  "probability_data" : [ {
+    "probability" : 0.8008281904610115,
+    "meta_alert_id" : "meta_alert_id"
+  }, {
+    "probability" : 0.8008281904610115,
+    "meta_alert_id" : "meta_alert_id"
+  } ],
+  "project_id" : "project_id",
+  "classifier_analysis" : "{}",
+  "classifier_instance_id" : "classifier_instance_id"
+}</code></pre>
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    OK
+        <a href="#classifier_results">classifier_results</a>
+    <h4 class="field-label">204</h4>
+    Not Updates
+        <a href="#"></a>
+    <h4 class="field-label">400</h4>
+    Unable to Run Classifier
+        <a href="#"></a>
+    <h4 class="field-label">401</h4>
+    Invalid Token Request
+        <a href="#"></a>
+    <h4 class="field-label">403</h4>
+    Missing Required Tokens
+        <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    Required Resources Not Found
+        <a href="#"></a>
+    <h4 class="field-label">422</h4>
+    Data Lacks Verdicts Labeled 'True' and 'False'
+        <a href="#"></a>
+    <h4 class="field-label">501</h4>
+    Error Retrieving DataHub Information
+        <a href="#"></a>
+    <h4 class="field-label">default</h4>
+    Unexpected Error
+        <a href="#error">error</a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="runClassifierInstance"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="put"><code class="huge"><span class="http-method">put</span> /classifiers/{classifier_instance_id}/projects/{project_id}</code></pre></div>
+    <div class="method-summary">Run a specific classifier instance on the project identified by id in the path. The response contains estimated class probablities and analysis of classifier performance. (<span class="nickname">runClassifierInstance</span>)</div>
+    <div class="method-notes"></div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">classifier_instance_id (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The id of the classifier instance to run on the target domain </div><div class="param">project_id (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The id of the project containing the packages </div>
+    </div>  <!-- field-items -->
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+
+    <h3 class="field-label">Request headers</h3>
+    <div class="field-items">
+      
+    </div>  <!-- field-items -->
+
+
+
+    <h3 class="field-label">Return type</h3>
+    <div class="return-type">
+      <a href="#classifier_results">classifier_results</a>
+      
+    </div>
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+    <h3 class="field-label">Example data</h3>
+    <div class="example-data-content-type">Content-Type: application/json</div>
+    <pre class="example"><code>{
+  "probability_data" : [ {
+    "probability" : 0.8008281904610115,
+    "meta_alert_id" : "meta_alert_id"
+  }, {
+    "probability" : 0.8008281904610115,
+    "meta_alert_id" : "meta_alert_id"
+  } ],
+  "project_id" : "project_id",
+  "classifier_analysis" : "{}",
+  "classifier_instance_id" : "classifier_instance_id"
+}</code></pre>
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    OK
+        <a href="#classifier_results">classifier_results</a>
+    <h4 class="field-label">400</h4>
+    Unable to Run Classifier
+        <a href="#"></a>
+    <h4 class="field-label">401</h4>
+    Invalid Token Request
+        <a href="#"></a>
+    <h4 class="field-label">403</h4>
+    Missing Required Tokens
+        <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    Required Resources Not Found
+        <a href="#"></a>
+    <h4 class="field-label">501</h4>
+    Error Retrieving DataHub Information
+        <a href="#"></a>
+    <h4 class="field-label">default</h4>
+    Unexpected Error
+        <a href="#error">error</a>
+  </div> <!-- method -->
+  <hr/>
+
+  <h2><a name="__Models">Models</a></h2>
+  [ Jump to <a href="#__Methods">Methods</a> ]
+
+  <h3>Table of Contents</h3>
+  <ol>
+    <li><a href="#alert"><code>alert</code> - </a></li>
+    <li><a href="#alert_updates_response"><code>alert_updates_response</code> - </a></li>
+    <li><a href="#analysis_results"><code>analysis_results</code> - </a></li>
+    <li><a href="#checker_mappings"><code>checker_mappings</code> - </a></li>
+    <li><a href="#classifier_instance"><code>classifier_instance</code> - </a></li>
+    <li><a href="#classifier_instance_data"><code>classifier_instance_data</code> - </a></li>
+    <li><a href="#classifier_results"><code>classifier_results</code> - </a></li>
+    <li><a href="#classifier_results_probability_data"><code>classifier_results_probability_data</code> - </a></li>
+    <li><a href="#close_adaptive_heuristics_response"><code>close_adaptive_heuristics_response</code> - </a></li>
+    <li><a href="#condition"><code>condition</code> - </a></li>
+    <li><a href="#create_classifier_response"><code>create_classifier_response</code> - </a></li>
+    <li><a href="#determination"><code>determination</code> - </a></li>
+    <li><a href="#determination_dangerous_construct_list"><code>determination_dangerous_construct_list</code> - </a></li>
+    <li><a href="#determination_dead_list"><code>determination_dead_list</code> - </a></li>
+    <li><a href="#determination_flag_list"><code>determination_flag_list</code> - </a></li>
+    <li><a href="#determination_ignored_list"><code>determination_ignored_list</code> - </a></li>
+    <li><a href="#determination_inapplicable_environment_list"><code>determination_inapplicable_environment_list</code> - </a></li>
+    <li><a href="#determination_notes_list"><code>determination_notes_list</code> - </a></li>
+    <li><a href="#determination_verdict_list"><code>determination_verdict_list</code> - </a></li>
+    <li><a href="#error"><code>error</code> - </a></li>
+    <li><a href="#list_classifiers_response"><code>list_classifiers_response</code> - </a></li>
+    <li><a href="#list_classifiers_response_adaptive_heuristics"><code>list_classifiers_response_adaptive_heuristics</code> - </a></li>
+    <li><a href="#list_classifiers_response_ahpos"><code>list_classifiers_response_ahpos</code> - </a></li>
+    <li><a href="#message"><code>message</code> - </a></li>
+    <li><a href="#meta_alert"><code>meta_alert</code> - </a></li>
+    <li><a href="#metrics"><code>metrics</code> - </a></li>
+    <li><a href="#multiple_alerts"><code>multiple_alerts</code> - </a></li>
+    <li><a href="#packages_with_tool_data"><code>packages_with_tool_data</code> - </a></li>
+    <li><a href="#packages_with_tool_data_tool_data"><code>packages_with_tool_data_tool_data</code> - </a></li>
+    <li><a href="#request_token"><code>request_token</code> - </a></li>
+    <li><a href="#source_mappings"><code>source_mappings</code> - </a></li>
+    <li><a href="#sourcefile"><code>sourcefile</code> - </a></li>
+    <li><a href="#sourcefunction"><code>sourcefunction</code> - </a></li>
+    <li><a href="#taxonomy"><code>taxonomy</code> - </a></li>
+    <li><a href="#secondary_message"><code>secondary_message</code> - </a></li>
+  </ol>
+
+  <div class="model">
+    <h3><a name="alert"><code>alert</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">alert_id </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">tool_id </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">checker_id </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">primary_message </div><div class="param-desc"><span class="param-type"><a href="#message">message</a></span>  </div>
+<div class="param">secondary_messages (optional)</div><div class="param-desc"><span class="param-type"><a href="#secondary_message">array[secondary_message]</a></span>  </div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="alert_updates_response"><code>alert_updates_response</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">project_id (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">package_id (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="analysis_results"><code>analysis_results</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">classifier_instance_id (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">classifier_analysis (optional)</div><div class="param-desc"><span class="param-type"><a href="#object">Object</a></span>  </div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="checker_mappings"><code>checker_mappings</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">checker_id (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">checker_name (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">tool_id (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">conditions (optional)</div><div class="param-desc"><span class="param-type"><a href="#condition">array[condition]</a></span>  </div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="classifier_instance"><code>classifier_instance</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">classifier_id </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">classifier_type (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">classifier_instance_name (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">project_ids </div><div class="param-desc"><span class="param-type"><a href="#string">array[String]</a></span>  </div>
+<div class="param">ahpo_id (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">ahpo_name (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">ahpo_parameters (optional)</div><div class="param-desc"><span class="param-type"><a href="#object">map[String, Object]</a></span>  </div>
+<div class="param">adaptive_heuristic_id (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">adaptive_heuristic_name (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">adaptive_heuristic_parameters (optional)</div><div class="param-desc"><span class="param-type"><a href="#object">map[String, Object]</a></span>  </div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="classifier_instance_data"><code>classifier_instance_data</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">project_id </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span> The id of the target project to run the classifier on </div>
+<div class="param">timestamp </div><div class="param-desc"><span class="param-type"><a href="#DateTime">Date</a></span> The current time format: date-time</div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="classifier_results"><code>classifier_results</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">classifier_instance_id (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">project_id </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span> ID of project in the target domain </div>
+<div class="param">probability_data </div><div class="param-desc"><span class="param-type"><a href="#classifier_results_probability_data">array[classifier_results_probability_data]</a></span>  </div>
+<div class="param">classifier_analysis (optional)</div><div class="param-desc"><span class="param-type"><a href="#object">Object</a></span>  </div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="classifier_results_probability_data"><code>classifier_results_probability_data</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">meta_alert_id (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">probability (optional)</div><div class="param-desc"><span class="param-type"><a href="#double">Double</a></span>  format: double</div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="close_adaptive_heuristics_response"><code>close_adaptive_heuristics_response</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">classifier_instance_id (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">message (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="condition"><code>condition</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">condition_id (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">condition_name (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">title (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">platforms (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">array[String]</a></span>  </div>
+<div class="param">code_language_ids (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">array[String]</a></span>  </div>
+<div class="param">condition_fields (optional)</div><div class="param-desc"><span class="param-type"><a href="#object">Object</a></span> Fields associated with this condition, i.e., likelihood </div>
+<div class="param">taxonomy (optional)</div><div class="param-desc"><span class="param-type"><a href="#taxonomy">taxonomy</a></span>  </div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="create_classifier_response"><code>create_classifier_response</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">classifier_instance_id (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">project_id (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">analysis_messages (optional)</div><div class="param-desc"><span class="param-type"><a href="#object">Object</a></span> Additional information that will help to understand this classifier instance's performance </div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="determination"><code>determination</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">flag_list (optional)</div><div class="param-desc"><span class="param-type"><a href="#determination_flag_list">array[determination_flag_list]</a></span>  </div>
+<div class="param">verdict_list (optional)</div><div class="param-desc"><span class="param-type"><a href="#determination_verdict_list">array[determination_verdict_list]</a></span>  </div>
+<div class="param">ignored_list (optional)</div><div class="param-desc"><span class="param-type"><a href="#determination_ignored_list">array[determination_ignored_list]</a></span>  </div>
+<div class="param">dead_list (optional)</div><div class="param-desc"><span class="param-type"><a href="#determination_dead_list">array[determination_dead_list]</a></span>  </div>
+<div class="param">inapplicable_environment_list (optional)</div><div class="param-desc"><span class="param-type"><a href="#determination_inapplicable_environment_list">array[determination_inapplicable_environment_list]</a></span>  </div>
+<div class="param">dangerous_construct_list (optional)</div><div class="param-desc"><span class="param-type"><a href="#determination_dangerous_construct_list">array[determination_dangerous_construct_list]</a></span>  </div>
+<div class="param">notes_list (optional)</div><div class="param-desc"><span class="param-type"><a href="#determination_notes_list">array[determination_notes_list]</a></span>  </div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="determination_dangerous_construct_list"><code>determination_dangerous_construct_list</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">dangerous_construct (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span> Options for this field include Unknown, No Risk, Low Risk, Medium Risk, and High Risk </div>
+<div class="param">timestamp (optional)</div><div class="param-desc"><span class="param-type"><a href="#DateTime">Date</a></span>  format: date-time</div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="determination_dead_list"><code>determination_dead_list</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">dead (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span> Options for this field include True, False, and Unknown </div>
+<div class="param">timestamp (optional)</div><div class="param-desc"><span class="param-type"><a href="#DateTime">Date</a></span>  format: date-time</div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="determination_flag_list"><code>determination_flag_list</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">flag (optional)</div><div class="param-desc"><span class="param-type"><a href="#boolean">Boolean</a></span>  </div>
+<div class="param">timestamp (optional)</div><div class="param-desc"><span class="param-type"><a href="#DateTime">Date</a></span>  format: date-time</div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="determination_ignored_list"><code>determination_ignored_list</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">ignored (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span> Options for this field include True, False, and Unknown </div>
+<div class="param">timestamp (optional)</div><div class="param-desc"><span class="param-type"><a href="#DateTime">Date</a></span>  format: date-time</div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="determination_inapplicable_environment_list"><code>determination_inapplicable_environment_list</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">inapplicable_environment (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span> Options for this field include True, False, and Unknown </div>
+<div class="param">timestamp (optional)</div><div class="param-desc"><span class="param-type"><a href="#DateTime">Date</a></span>  format: date-time</div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="determination_notes_list"><code>determination_notes_list</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">notes (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">timestamp (optional)</div><div class="param-desc"><span class="param-type"><a href="#DateTime">Date</a></span>  format: date-time</div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="determination_verdict_list"><code>determination_verdict_list</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">verdict (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span> 'Options for this field include Unknown, Complex, False, Dependent, and True </div>
+<div class="param">timestamp (optional)</div><div class="param-desc"><span class="param-type"><a href="#DateTime">Date</a></span>  format: date-time</div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="error"><code>error</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">code </div><div class="param-desc"><span class="param-type"><a href="#integer">Integer</a></span>  </div>
+<div class="param">message </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="list_classifiers_response"><code>list_classifiers_response</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">classifier_id (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">classifier_type (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">ahpos (optional)</div><div class="param-desc"><span class="param-type"><a href="#list_classifiers_response_ahpos">array[list_classifiers_response_ahpos]</a></span>  </div>
+<div class="param">adaptive_heuristics (optional)</div><div class="param-desc"><span class="param-type"><a href="#list_classifiers_response_adaptive_heuristics">array[list_classifiers_response_adaptive_heuristics]</a></span>  </div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="list_classifiers_response_adaptive_heuristics"><code>list_classifiers_response_adaptive_heuristics</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">adaptive_heuristic_id (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">adaptive_heuristic_name (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">adaptive_heuristic_parameters (optional)</div><div class="param-desc"><span class="param-type"><a href="#object">Object</a></span>  </div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="list_classifiers_response_ahpos"><code>list_classifiers_response_ahpos</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">ahpo_id (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">ahpo_name (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">ahpo_parameters (optional)</div><div class="param-desc"><span class="param-type"><a href="#object">Object</a></span>  </div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="message"><code>message</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">line_start </div><div class="param-desc"><span class="param-type"><a href="#integer">Integer</a></span>  </div>
+<div class="param">line_end (optional)</div><div class="param-desc"><span class="param-type"><a href="#integer">Integer</a></span>  </div>
+<div class="param">filepath </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">source_file_id </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">source_function_id (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="meta_alert"><code>meta_alert</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">meta_alert_id </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">condition_id (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">filepath (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">line_number (optional)</div><div class="param-desc"><span class="param-type"><a href="#integer">Integer</a></span>  </div>
+<div class="param">determination (optional)</div><div class="param-desc"><span class="param-type"><a href="#determination">determination</a></span>  </div>
+<div class="param">alert_ids (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">array[String]</a></span>  </div>
+<div class="param">auto_verdict (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">map[String, String]</a></span>  </div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="metrics"><code>metrics</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+          </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="multiple_alerts"><code>multiple_alerts</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">source_files (optional)</div><div class="param-desc"><span class="param-type"><a href="#sourcefile">array[sourcefile]</a></span>  </div>
+<div class="param">meta_alerts (optional)</div><div class="param-desc"><span class="param-type"><a href="#meta_alert">array[meta_alert]</a></span>  </div>
+<div class="param">alerts (optional)</div><div class="param-desc"><span class="param-type"><a href="#alert">array[alert]</a></span>  </div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="packages_with_tool_data"><code>packages_with_tool_data</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">package_ids (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">array[String]</a></span>  </div>
+<div class="param">tool_data (optional)</div><div class="param-desc"><span class="param-type"><a href="#packages_with_tool_data_tool_data">packages_with_tool_data_tool_data</a></span>  </div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="packages_with_tool_data_tool_data"><code>packages_with_tool_data_tool_data</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">tool_name (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">tool_version (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">tool_type (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">source_mappings (optional)</div><div class="param-desc"><span class="param-type"><a href="#source_mappings">array[source_mappings]</a></span>  </div>
+<div class="param">code_metrics_data (optional)</div><div class="param-desc"><span class="param-type"><a href="#object">Object</a></span>  </div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="request_token"><code>request_token</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">request_id </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span> Id used to correlate messages with each other </div>
+<div class="param">message (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="source_mappings"><code>source_mappings</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">mapping_source (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">checker_mappings (optional)</div><div class="param-desc"><span class="param-type"><a href="#checker_mappings">array[checker_mappings]</a></span>  </div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="sourcefile"><code>sourcefile</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">source_file_id (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">filename (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">filepath (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">filepath_depth (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">defect_info (optional)</div><div class="param-desc"><span class="param-type"><a href="#object">Object</a></span>  </div>
+<div class="param">code_metrics_data (optional)</div><div class="param-desc"><span class="param-type"><a href="#metrics">array[metrics]</a></span>  </div>
+<div class="param">functions (optional)</div><div class="param-desc"><span class="param-type"><a href="#sourcefunction">array[sourcefunction]</a></span>  </div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="sourcefunction"><code>sourcefunction</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">source_function_id (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">name (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">line_start (optional)</div><div class="param-desc"><span class="param-type"><a href="#integer">Integer</a></span>  </div>
+<div class="param">line_end (optional)</div><div class="param-desc"><span class="param-type"><a href="#integer">Integer</a></span>  </div>
+<div class="param">code_metrics_data (optional)</div><div class="param-desc"><span class="param-type"><a href="#metrics">array[metrics]</a></span>  </div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="taxonomy"><code>taxonomy</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">taxonomy_id </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">taxonomy_name </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span> Name of the taxonomy, i.e., CERT or CWE </div>
+<div class="param">taxonomy_version </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">description (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="secondary_message"><code>secondary_message</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">line_start </div><div class="param-desc"><span class="param-type"><a href="#integer">Integer</a></span>  </div>
+<div class="param">line_end (optional)</div><div class="param-desc"><span class="param-type"><a href="#integer">Integer</a></span>  </div>
+<div class="param">filepath </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">source_file_id </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">source_function_id (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">message_text </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+    </div>  <!-- field-items -->
+  </div>
+  </body>
+</html>
