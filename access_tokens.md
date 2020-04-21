@@ -3,7 +3,9 @@ Access tokens
 The Registration Module is a server used to register users in the SCAIFE system.
 Users at the UI module register and login through this server to receive an access token that is
 intended in the future to enable the UI Module to communicate securely with the Statistics, DataHub, and
-Prioritization Modules that are connected to the Registration Module.
+Prioritization Modules that are connected to the Registration Module.  Currently, the access token is used in all requests to
+the DataHub, and Prioritization Modules as the “x-access-token” parameter. The x-request-token parameter in the API calls can
+be any string value and will be removed in future versions of SCAIFE. 
 
 Note: The SCAIFE Registration Module utilizes JSON Web Tokens (JWTs) to grant access to its users. Currently, the access tokens
 used to interact with the Statistics, Prioritization, and DataHub modules are intended to be validated to ensure they are not expired
