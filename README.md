@@ -28,8 +28,8 @@ If you can, we encourage you to use the open-source (and free) Swagger Editor [4
 
 Otherwise, view the HTML API definition file in a web browser. This way, the models and methods can be accessed by following the hyperlinks associated with each resource in the SCAIFE API Definition section below. 
 
-Each API definition section is further categorized based on the source and destination modules of the API calls. For instance, the Rapid Models Registration and Login Module API Definition section contains only one category of API calls under the label
-UIToRegistration. The source (request) of the API calls comes from the UI Module, and the API calls are forwarded to the destination—the Registration Module.
+Each API definition section is categorized based on the source and destination modules of the API calls. For instance, the Rapid Models Registration and Login Module API Definition section contains only one category of API calls under the label
+UIToRegistration. The source (request) of the API calls comes from the UI Module, and the API calls are forwarded to the destination—the Registration Module. Data models are defined in the bottom section of the file.
 
 
 Hopefully you won't only inspect the API, you will use it to integrate your tool or code into a SCAIFE system. You can automatically generate code from the YAML or JSON API definition of any of the SCAIFE modules, using Swagger Codegen [4] or similar tools. This not onlly has the benefit of accelerating and automating code development, but it also ensures that code instantiates the SCAIFE API. If you have a tool you want to generate client code for (meaning, you want code that will make a call to a SCAIFE server defined in that server's API definition), tools like Swagger Codegen will generate code in any of a wide variety of languages. You can plop the generated client code into your own code in the right place, and use your own variables as the parameters. Similarly,you can automatically generate server code for any of the SCAIFE modules, including controller function stubs for each of the API calls to that server that you will then flesh out internal code for.
