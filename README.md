@@ -18,7 +18,7 @@ The SCAIFE architecture shown in the figure includes five servers. The system is
 
 ## How to get started with the API
 
-* Select one of the five modules to start inspecting.: 
+Select one of the five modules to start inspecting.: 
 Most FFSA tool and alert aggregator tool developers will be most interested in the UI Module's API definition. To enable their tool to interact with the SCAIFE system, their tool needs to instantiate the UI Module's API.
 However, some researchers/developers focused on improving classification, active learning, and automated hyper-parameter optimization will instead want to focus on the Stats Module's API. They can develop new algorithms and modularly incorporate them within a prototype we've developed (if they are our research collaborator) or simply modify their own tools to instantiate the Stats Module's API and then interact with a SCAIFE system with other modules developed by different people (e.g., for a UI Module they could use the version of SCALe we developed to work modularly with SCAIFE).
 Similarly, some researchers/developers have a focus on improving performance, security, resilience, and scalability of aggregated and eventually expected-to-be-large data storage. Those people will want to focus on the DataHub Module's API.
