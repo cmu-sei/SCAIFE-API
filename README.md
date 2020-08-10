@@ -44,8 +44,8 @@ Special notes for API reviewers:
 
 ## Related Information
 
-1. Lori Flynn, Ebonie McNeil, and Aubrie Woods. "SCAIFE API Definition Beta Version 0.0.2 for Developers", whitepaper, Software Engineering Institute, June 14, 2019. https://resources.sei.cmu.edu/library/asset-view.cfm?assetID=549351
-2. Lori Flynn, Ebonie McNeil, and Aubrie Woods. "Integration of Automated Static Analysis Alert Classification and Prioritization with Auditing Tools: Special Focus on SCALe", technical report, Software Engineering Institure, May 13, 2019. https://resources.sei.cmu.edu/library/asset-view.cfm?assetid=546157
+1. Lori Flynn and Ebonie McNeil. "SCAIFE API Definition Beta Version 0.0.2 for Developers", whitepaper, Software Engineering Institute, June 14, 2019. https://resources.sei.cmu.edu/library/asset-view.cfm?assetID=549351
+2. Lori Flynn and Ebonie McNeil. "Integration of Automated Static Analysis Alert Classification and Prioritization with Auditing Tools: Special Focus on SCALe", technical report, Software Engineering Institure, May 13, 2019. https://resources.sei.cmu.edu/library/asset-view.cfm?assetid=546157
 3. "Using Automation to Prioritize Alerts from Static Analysis Tools", Software Engineering Institute webpage on research topic, created September 2017. https://www.sei.cmu.edu/research-capabilities/all-work/display.cfm?customel_datapageid_4050=6453
 4. Swagger pinned repositories. GitHub Website. https://github.com/swagger-api
 5. Lori Flynn and Ebonie McNeil. "Rapid Construction of Accurate Automatic Alert Handling System (2019)", presentation, October 2019. https://resources.sei.cmu.edu/library/asset-view.cfm?assetid=635433 
