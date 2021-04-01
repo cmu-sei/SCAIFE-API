@@ -1,0 +1,3112 @@
+openapi: 3.0.1
+info:
+  description: "This is the API definition for a SCAIFE DataHub module.
+  SCAIFE facilitates auditing static analysis meta-alerts using
+  classifiers, optional adaptive heuristics, and meta-alert
+  prioritization. SCAIFE enables jump-starting labeled datasets using
+  test suites. It is intended to enable a wide range of users (with
+  widely varying datasets, static analysis tools, machine learning
+  expertise, and amount of labeled data) to benefit from using
+  classifiers and sophisticated prioritization to automatically triage
+  static analysis meta-alerts."
+  version: "2.0.0"
+  title: "SCAIFE DataHub Module API Definition"
+  contact:
+    name: SCAIFE Project
+    url: https://www.sei.cmu.edu/research-capabilities/all-work/display.cfm?customel_datapageid_4050=6453
+    email: lflynn@cert.org
+  license:
+    name: |-
+      SCAIFE API Copyright 2007-2021 Carnegie Mellon University. All Rights Reserved.
+
+      Redistribution and use in source and binary forms, with or
+      without modification, are permitted provided that the following
+      conditions are met:
+
+      1. Redistributions of source code must retain the above copyright
+         notice, this list of conditions and the following disclaimer.
+
+      2. Redistributions in binary form must reproduce the above
+         copyright notice, this list of conditions and the following
+         disclaimer in the documentation and/or other materials provided
+         with the distribution.
+
+      3. Products derived from this software may not include ''Carnegie
+         Mellon University,'' ''SEI'' and/or ''Software Engineering
+         Institute'' in the name of such derived product, nor shall
+         ''Carnegie Mellon University,'' ''SEI'' and/or ''Software
+         Engineering Institute'' be used to endorse or promote products
+         derived from this software without prior written permission.
+         For written permission, please contact permission@sei.cmu.edu.
+
+      ACKNOWLEDGMENTS AND DISCLAIMERS:
+
+      This material is based upon work funded and supported by the
+      Department of Defense under Contract No. FA8702-15-D-0002 with
+      Carnegie Mellon University for the operation of the Software
+      Engineering Institute, a federally funded research and
+      development center.
+
+      The view, opinions, and/or findings contained in this material are
+      those of the author(s) and should not be construed as an official
+      Government position, policy, or decision, unless designated by
+      other documentation.
+
+      NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE
+      ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN ''AS-IS'' BASIS.
+      CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER
+      EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED
+      TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY,
+      EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL.
+      CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND
+      WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT
+      INFRINGEMENT.
+
+      [DISTRIBUTION STATEMENT A] This material has been approved for
+      public release and unlimited distribution. Please see Copyright
+      notice for non-US Government use and distribution.
+
+      This material includes field names used in the Software Assurance
+      Marketplace (SWAMP), a service that provides continuous software
+      assurance capabilities to developers and researchers at
+      https://www.mir-swamp.org/#. Copyright © 2012-2021 The Morgridge
+      Institute for Research, Inc. All rights reserved.
+
+      This material includes field names used in the Software Assurance
+      Tool (SwAT), a tool that is used by analysts to analyze static
+      analysis alerts from multiple static analysis tools.
+      https://www.cerdec.army.mil/ Combat Capabilities Development
+      Command (CCDC) C5ISR Center. All rights reserved.
+
+      DM19-0572
+servers:
+- url: http://127.0.0.1:8084
+  description: Base URL for the DataHub Server
+paths:
+  /analyze/{package_id}:
+    post:
+      tags:
+      - CI_to_Datahub
+      summary: Submit static analysis results to SCAIFE
+      operationId: ci_analyze
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: package_id
+        in: path
+        description: ID of the SCAIFE package
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              x-body-name: ci_contents
+              $ref: '#/components/schemas/ci_contents'
+      responses:
+        "200":
+          description: Successfully submitted test results to SCAIFE for analysis
+        "400":
+          description: Invalid Request
+        "401":
+          description: Invalid Token Request
+        "403":
+          description: Missing Required Token
+        default:
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.ci_to_datahub_controller
+  /status:
+    get:
+      tags:
+      - DataHub_Server
+      summary: Provides Server Status
+      operationId: get_status
+      responses:
+        "200":
+          description: Server Is Running
+        "400":
+          description: Database Connection Lost
+        default:
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.data_hub_server_controller
+  /status/tool-output/{task_id}:
+    get:
+      tags:
+      - Task_Status
+      summary: Provides the status of tool output uploads, and results when they are
+        available
+      operationId: get_tool_output_status
+      parameters:
+      - name: task_id
+        in: path
+        description: Task ID for the tool output upload process
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK, Tool Output Successfully Uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tool_alert_mappings'
+        "202":
+          description: Task Pending, Not Completed
+        "400":
+          description: Unable to Upload Tool Output
+        "401":
+          description: Invalid Token Request
+        "403":
+          description: Missing Required Token
+        "404":
+          description: Invalid Task ID
+        default:
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.task_status_controller
+  /languages:
+    get:
+      tags:
+      - DataHub_Server
+      summary: Retrieve a list of all the available languages.
+      operationId: list_languages
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Return a List of Languages Available in the Module
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/list_languages'
+        "400":
+          description: Invalid Request
+        "401":
+          description: Invalid Token Request
+        "403":
+          description: Missing Required Token
+        "404":
+          description: No Languages Available
+        default:
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.data_hub_server_controller
+    post:
+      tags:
+      - UI_to_DataHub
+      summary: Create a new language definition.
+      operationId: create_language
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        description: Language information
+        content:
+          application/json:
+            schema:
+              x-body-name: language_version
+              $ref: '#/components/schemas/language_version'
+        required: true
+      responses:
+        "200":
+          description: Language Successfully Uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/language_version_w_id'
+        "400":
+          description: Invalid Request
+        "401":
+          description: Invalid Token Request
+        "403":
+          description: Missing Required Token
+        default:
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.ui_to_data_hub_controller
+  /packages:
+    get:
+      tags:
+      - DataHub_Server
+      summary: Retrieve a list of all available packages.
+      operationId: list_packages
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Return a List of Available Packages
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/list_packages'
+        "400":
+          description: Invalid Request
+        "401":
+          description: Invalid Token Request
+        "403":
+          description: Missing Required Token
+        "404":
+          description: No Packages Available
+        default:
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.data_hub_server_controller
+    post:
+      tags:
+      - UI_to_DataHub
+      summary: Create a new package. This request will return the package_id used
+        to reference the package within the DataHub. Note, for metrics data uploads
+        use PUT /tools/{tool_id}.
+      operationId: create_package
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        description: Data to the create package
+        content:
+          application/json:
+            schema:
+              x-body-name: package_metadata
+              $ref: '#/components/schemas/package_metadata'
+        required: true
+      responses:
+        "200":
+          description: Package Successfully Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/created_package'
+        "400":
+          description: Unable to Create Package
+        "401":
+          description: Invalid Token Request
+        "403":
+          description: Missing Required Token
+        "422":
+          description: Package Data Exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/created_package'
+        default:
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.ui_to_data_hub_controller
+  /packages/{package_id}:
+    get:
+      tags:
+      - DataHub_Server
+      summary: Retrieve an existing package in the DataHub Module.
+      operationId: get_package
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: package_id
+        in: path
+        description: ID of the package to retrieve
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Return an Existing Package
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/package'
+        "400":
+          description: Invalid Request
+        "401":
+          description: Invalid Token Request
+        "403":
+          description: Missing Required Token
+        "404":
+          description: Package Unavailable
+        default:
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.data_hub_server_controller
+    put:
+      tags:
+      - UI_to_DataHub
+      summary: Update an existing package. Use this method to add new alerts for the
+        package. Note, for metrics data or tool output file uploads use POST /tools/{tool_id}/packages/{package_id}.
+      operationId: edit_package
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: package_id
+        in: path
+        description: ID of the package to update
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        description: Package data to modify the existing package with
+        content:
+          application/json:
+            schema:
+              x-body-name: edit_package_metadata
+              $ref: '#/components/schemas/edit_package_metadata'
+        required: true
+      responses:
+        "200":
+          description: Package Successfully Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/edited_package'
+        "400":
+          description: Invalid Request
+        "401":
+          description: Invalid Token Request
+        "403":
+          description: Missing Required Token
+        "404":
+          description: Unable to Update Package
+        default:
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.ui_to_data_hub_controller
+    post:
+      tags:
+      - UI_to_DataHub
+      summary: Upload a Source Code Archive and MetaData Files for the Package.
+      operationId: upload_codebase_for_package
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: package_id
+        in: path
+        description: ID of the package to update
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              x-body-name: package_contents
+              $ref: '#/components/schemas/package_contents'
+      responses:
+        "200":
+          description: Code Source Successfully Uploaded
+        "400":
+          description: Invalid Request
+        "401":
+          description: Invalid Token Request
+        "403":
+          description: Missing Required Token
+        "404":
+          description: Unable to Upload Code Source Archive
+        default:
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.ui_to_data_hub_controller
+    delete:
+      tags:
+      - UI_to_DataHub
+      summary: Delete an existing package.
+      operationId: delete_package
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: package_id
+        in: path
+        description: ID of the package to delete
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Package Successfully Deleted
+        "400":
+          description: Invalid Request
+        "401":
+          description: Invalid Token Request
+        "403":
+          description: Missing Required Token
+        "404":
+          description: Unable to Delete Package
+        default:
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.ui_to_data_hub_controller
+  /projects:
+    get:
+      tags:
+      - DataHub_Server
+      summary: Retrieve a list of all available projects.
+      operationId: list_projects
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Return a List of Available Projects
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/list_projects'
+        "400":
+          description: Invalid Request
+        "401":
+          description: Invalid Token Request
+        "403":
+          description: Missing Required Token
+        "404":
+          description: No Projects Available
+        default:
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.data_hub_server_controller
+    post:
+      tags:
+      - UI_to_DataHub
+      summary: Create a new project. The package and taxonomies should
+        be uploaded to the DataHub prior to creating a project. This
+        request will return the project_id to reference the project
+        within the DataHub.
+      operationId: create_project
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        description: Data to a create project
+        content:
+          application/json:
+            schema:
+              x-body-name: project_metadata
+              $ref: '#/components/schemas/project_metadata'
+        required: true
+      responses:
+        "200":
+          description: Project Successfully Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/created_project'
+        "400":
+          description: Unable to Create Project
+        "401":
+          description: Invalid Token Request
+        "403":
+          description: Missing Required Token
+        "422":
+          description: Project Data Exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/created_project'
+        default:
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.ui_to_data_hub_controller
+  /projects/{project_id}:
+    put:
+      tags:
+      - UI_to_DataHub
+      summary: Update an existing project. This method can also be used to send only
+        meta-alert determinations of an existing meta-alert to the DataHub, which
+        is most useful when a project has an open adaptive heuristic set.
+      operationId: edit_project
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: project_id
+        in: path
+        description: The ID of the project to update
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        description: Project data to modify the existing project with
+        content:
+          application/json:
+            schema:
+              x-body-name: edit_project_metadata
+              $ref: '#/components/schemas/edit_project_metadata'
+        required: true
+      responses:
+        "200":
+          description: Package was Successfully Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/edited_project'
+        "400":
+          description: Invalid Request
+        "401":
+          description: Invalid Token Request
+        "403":
+          description: Missing Required Token
+        "404":
+          description: Unable to Update Project
+        default:
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.ui_to_data_hub_controller
+    post:
+      tags:
+      - UI_to_DataHub
+      summary: Send a request to the DataHub to enable data forwarding for all future
+        updates to this project
+      operationId: enable_data_forwarding
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: project_id
+        in: path
+        description: The ID of the project to enable data forwarding
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Data Forwarding Successfully Enabled
+        "400":
+          description: Data Forwarding Failed
+        "401":
+          description: Invalid Token Request
+        "403":
+          description: Missing Required Token
+        "404":
+          description: Project Unavailable
+        default:
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.ui_to_data_hub_controller
+    delete:
+      tags:
+      - UI_to_DataHub
+      summary: Delete an existing project.
+      operationId: delete_project
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: project_id
+        in: path
+        description: The ID of the project to delete
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Project Successfully Deleted
+        "400":
+          description: Invalid Request
+        "401":
+          description: Invalid Token Request
+        "403":
+          description: Missing Required Token
+        "404":
+          description: Project Unavailable
+        default:
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.ui_to_data_hub_controller
+  /projects/{project_id}/alerts:
+    get:
+      tags:
+      - DataHub_Server
+      summary: Retrieve only the alerts and meta-alerts for a specific project.
+      operationId: get_alerts_for_project
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: project_id
+        in: path
+        description: The ID of the project
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Return the Alerts and Meta-Alerts Associated with the Project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/get_alerts_response'
+        "400":
+          description: Invalid Request
+        "401":
+          description: Invalid Token Request
+        "403":
+          description: Missing Required Token
+        "404":
+          description: Alerts and Meta-Alerts Unavailable
+        default:
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.data_hub_server_controller
+  /projects/{project_id}/determinations:
+    post:
+      tags:
+      - UI_to_DataHub
+      summary: Send updated meta-alert determinations for a specific project.
+      operationId: send_meta_alerts_for_project
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: project_id
+        in: path
+        description: The ID of the project
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        description: The list of meta-alert IDs and determinations
+        content:
+          application/json:
+            schema:
+              x-body-name: meta_alert_determinations
+              $ref: '#/components/schemas/meta_alert_determinations'
+        required: true
+      responses:
+        "200":
+          description: Meta Alerts Updated
+        "400":
+          description: Invalid Request
+        "401":
+          description: Invalid Token Request
+        "403":
+          description: Missing Required Token
+        "404":
+          description: Project Unavailable
+        default:
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.ui_to_data_hub_controller
+  /projects/{project_id}/cascade:
+    get:
+      tags:
+      - UI_to_DataHub
+      summary: Get the last performance metrics for cascading determinations on this
+        project
+      operationId: get_cascade_performance
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: project_id
+        in: path
+        description: The ID of the project
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Cascading Performance Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/cascading_performance'
+        "400":
+          description: Invalid Request
+        "401":
+          description: Invalid Token Request
+        "403":
+          description: Missing Required Token
+        "404":
+          description: Project or Cascading Performance Unavailable
+        default:
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.ui_to_data_hub_controller
+    post:
+      tags:
+      - UI_to_DataHub
+      summary: Cascade determinations from a source into the project at the DataHub
+      operationId: cascade_determinations
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: project_id
+        in: path
+        description: The ID of the project
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        description: Information used to cascade the determination into the project
+        content:
+          multipart/form-data:
+            schema:
+              x-body-name: cascade_project
+              $ref: '#/components/schemas/cascade_project'
+        # TODO: this needs to be implemented later (RC-1694)
+        #required: true
+        required: false
+      responses:
+        "200":
+          description: Cascading Successfully Completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/cascading_performance'
+        "400":
+          description: Invalid Request
+        "401":
+          description: Invalid Token Request
+        "403":
+          description: Missing Required Token
+        "404":
+          description: Project Unavailable
+        default:
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.ui_to_data_hub_controller
+  /projects/retrieve:
+    post:
+      tags:
+      - UI_to_DataHub
+      summary: Retrieve projects from the DataHub. Send taxonomy information the requestor
+        already has, along with projects it is requesting. This way, a response from
+        the DataHub can efficiently leave out taxonomies that the requestor already
+        has information for.
+      operationId: get_projects
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        description: '''Taxonomy information the requesting module already has, along
+          with projects it is requesting.'''
+        content:
+          application/json:
+            schema:
+              x-body-name: projects_requested
+              $ref: '#/components/schemas/projects_requested'
+        required: true
+      responses:
+        "200":
+          description: Return Existing Projects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/project'
+                x-content-type: application/json
+        "400":
+          description: Invalid Request
+        "401":
+          description: Invalid Token Request
+        "403":
+          description: Missing Required Token
+        "404":
+          description: Projects Unavailable
+        default:
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.ui_to_data_hub_controller
+  /projects/classifiers/retrieve:
+    post:
+      tags:
+      - Stats_to_DataHub
+      summary: Retrieve projects from the DataHub for Classification at the Stats
+        Module
+      operationId: get_projects_for_classifier
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        description: '''Tool and taxonomy information the requesting module already
+          has, along with projects it is requesting.'''
+        content:
+          application/json:
+            schema:
+              x-body-name: classifier_projects_requested
+              $ref: '#/components/schemas/classifier_projects_requested'
+        required: true
+      responses:
+        "200":
+          description: Return Existing Projects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/classifier_project'
+                x-content-type: application/json
+        "400":
+          description: Invalid Request
+        "401":
+          description: Invalid Token Request
+        "403":
+          description: Missing Required Token
+        "404":
+          description: Projects Unavailable
+        default:
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.stats_to_data_hub_controller
+  /projects/adaptive_heuristics/close:
+    post:
+      tags:
+      - Stats_to_DataHub
+      summary: Send a list of project_ids to stop forwarding the project's alerts
+        to the Stats Module.
+      operationId: close_adaptive_heuristics
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        description: '''Multiple project_ids to close adaptive heuristic alert forwarding
+          request'''
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+              x-body-name: project_ids
+        required: true
+      responses:
+        "200":
+          description: Adaptive Heuristic Forwarding Successfully Closed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/adaptive_heuristic_close_response'
+        "400":
+          description: Invalid Request
+        "401":
+          description: Invalid Token Request
+        "403":
+          description: Missing Required Token
+        default:
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.stats_to_data_hub_controller
+  /taxonomies:
+    get:
+      tags:
+      - DataHub_Server
+      summary: Retrieve a list of available Taxonomy ID, Name and Versions Available
+        in the Module
+      operationId: list_taxonomies
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Returns a List of Taxonomy ID, Name and Versions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/taxonomy_heading'
+                x-content-type: application/json
+        "400":
+          description: Invalid Request
+        "401":
+          description: Invalid Token Request
+        "403":
+          description: Missing Required Token
+        "404":
+          description: Taxonomies Unavailable
+        default:
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.data_hub_server_controller
+    post:
+      tags:
+      - UI_to_DataHub
+      summary: Upload a new taxonomy to the DataHub Module. Returns the taxonomy_id
+        and condition_ids to reference this Taxonomy and its Conditions.
+      operationId: create_taxonomy
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        description: Taxonomy information to upload
+        content:
+          application/json:
+            schema:
+              x-body-name: taxonomy_metadata
+              $ref: '#/components/schemas/taxonomy_metadata'
+        required: true
+      responses:
+        "200":
+          description: OK, Taxonomy Successfully Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/created_taxonomy'
+        "400":
+          description: Unable to Create Taxonomy
+        "401":
+          description: Invalid Token Request
+        "403":
+          description: Missing Required Token
+        "422":
+          description: Taxonomy Data Exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/created_taxonomy'
+        default:
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.ui_to_data_hub_controller
+  /taxonomies/{taxonomy_id}:
+    get:
+      tags:
+      - DataHub_Server
+      summary: Retrieve an existing taxonomy based on the name and version.
+      operationId: get_taxonomy
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: taxonomy_id
+        in: path
+        description: ID of the taxonomy to retrieve
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Returns Data for a Specific Taxonomy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/taxonomy'
+        "400":
+          description: Invalid Request
+        "401":
+          description: Invalid Token Request
+        "403":
+          description: Missing Required Token
+        "404":
+          description: Taxonomy Unavailable
+        default:
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.data_hub_server_controller
+    put:
+      tags:
+      - UI_to_DataHub
+      summary: Edit a taxonomy, including uploads of additional conditions
+      operationId: edit_taxonomy
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: taxonomy_id
+        in: path
+        description: ID of the taxonomy to retrieve
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        description: Taxonomy information to upload
+        content:
+          application/json:
+            schema:
+              x-body-name: edit_taxonomy
+              $ref: '#/components/schemas/edit_taxonomy'
+        required: true
+      responses:
+        "200":
+          description: Returns Condition Information for a Specific Taxonomy
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/condition_response_w_id'
+                x-content-type: application/json
+        "400":
+          description: Invalid Request
+        "401":
+          description: Invalid Token Request
+        "403":
+          description: Missing Required Token
+        "404":
+          description: Taxonomy Unavailable
+        default:
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.ui_to_data_hub_controller
+  /taxonomies/{taxonomy_id}/languages:
+    get:
+      tags:
+      - DataHub_Server
+      summary: Retrieve the languages associated with this taxonomy
+      operationId: get_taxonomy_languages
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: taxonomy_id
+        in: path
+        description: ID of the taxonomy to retrieve
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Returns Languages for a Specific Taxonomy
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/language_version_w_id'
+                x-content-type: application/json
+        "400":
+          description: Invalid Request
+        "401":
+          description: Invalid Token Request
+        "403":
+          description: Missing Required Token
+        "404":
+          description: Taxonomy Unavailable
+        default:
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.data_hub_server_controller
+    put:
+      tags:
+      - UI_to_DataHub
+      summary: Add languages to the taxonomy condition objects
+      operationId: add_condition_languages
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: taxonomy_id
+        in: path
+        description: ID of the taxonomy to retrieve
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              x-body-name: condition_languages
+              $ref: '#/components/schemas/condition_languages'
+        required: true
+      responses:
+        "200":
+          description: Condition Languages Successfully Updated
+        "400":
+          description: Invalid Request
+        "401":
+          description: Invalid Token Request
+        "403":
+          description: Missing Required Token
+        "404":
+          description: Taxonomy, Conditions or Language Unavailable
+        default:
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.ui_to_data_hub_controller
+  /test_suites:
+    get:
+      tags:
+      - DataHub_Server
+      summary: '''Retrieve a List of Test Suite ID, Name and Versions Available in
+        the Module'''
+      operationId: list_test_suites
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Returns a List of Test Suite ID, Name and Versions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/test_suite_heading'
+                x-content-type: application/json
+        "400":
+          description: Invalid Request
+        "401":
+          description: Invalid Token Request
+        "403":
+          description: Missing Required Token
+        "404":
+          description: Test Suites Unavailable
+        default:
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.data_hub_server_controller
+    post:
+      tags:
+      - UI_to_DataHub
+      summary: Create a Test Suite in the DataHub Module.
+      operationId: create_test_suite
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        description: Test Suite information to upload
+        content:
+          application/json:
+            schema:
+              x-body-name: test_suite_metadata
+              $ref: '#/components/schemas/test_suite_metadata'
+        required: true
+      responses:
+        "200":
+          description: OK, Test Suite Successfully Uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/test_suite_heading'
+        "400":
+          description: Unable to Upload Test Suite
+        "401":
+          description: Invalid Token Request
+        "403":
+          description: Missing Required Token
+        "422":
+          description: Test Suite Data Exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/test_suite_heading'
+        default:
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.ui_to_data_hub_controller
+  /test_suites/{test_suite_id}/packages/{package_id}:
+    post:
+      tags:
+      - UI_to_DataHub
+      summary: Upload Test Suite MetaData Files
+      operationId: upload_test_suite
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: test_suite_id
+        in: path
+        description: Test Suite ID to upload data files
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: package_id
+        in: path
+        description: Package ID to upload data files
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              x-body-name: test_suite_contents
+              $ref: '#/components/schemas/test_suite_contents'
+      responses:
+        "200":
+          description: Data Successfully Uploaded
+        "400":
+          description: Invalid Request
+        "401":
+          description: Invalid Token Request
+        "403":
+          description: Missing Required Token
+        default:
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.ui_to_data_hub_controller
+  /tools:
+    get:
+      tags:
+      - DataHub_Server
+      summary: Retrieve a List of Tool ID, Name, and Versions Available in the Module
+      operationId: list_tools
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: '''Returns a List of Tool ID, Name, and Versions Available
+            in the Module'''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/tool_heading'
+                x-body-name: list_tools
+                x-content-type: application/json
+        "400":
+          description: Invalid Request
+        "401":
+          description: Invalid Token Request
+        "403":
+          description: Missing Required Token
+        "404":
+          description: Tools Unavailable
+        default:
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.data_hub_server_controller
+    post:
+      tags:
+      - UI_to_DataHub
+      summary: Upload a new Tool to the DataHub Module. Returns a tool_id to reference
+        the tool in the DataHub Module. For code metrics tools, upload a list of ordered
+        field names.
+      operationId: upload_tool
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        required: true
+        description: Tool information to upload
+        content:
+          application/json:
+            schema:
+              x-body-name: tool_metadata
+              $ref: '#/components/schemas/tool_metadata'
+      responses:
+        "200":
+          description: OK, Tool Successfully Uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tool_response'
+        "400":
+          description: Unable to Upload Tool Information
+        "401":
+          description: Invalid Token Request
+        "403":
+          description: Missing Required Token
+        "422":
+          description: Tool Exists, Return Tool ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tool_response'
+        default:
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.ui_to_data_hub_controller
+  /tools/parsers:
+    get:
+      tags:
+      - DataHub_Server
+      summary: Retrieve a List of Tool Parsers Available in the Module. The values
+        should be used to set the tool_parser parameter in the POST /tools API
+      operationId: get_tool_parsers
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: '''Returns a List of Tool Parsers Available in the Module'''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tool_parsers'
+        "400":
+          description: Invalid Request
+        "401":
+          description: Invalid Token Request
+        "403":
+          description: Missing Required Token
+        "404":
+          description: Tool Parsers Unavailable
+        default:
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.data_hub_server_controller
+  /tools/{tool_id}:
+    get:
+      tags:
+      - DataHub_Server
+      summary: Retrieve an existing tool in the DataHub Module.
+      operationId: get_tool_data
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: tool_id
+        in: path
+        description: Tool ID to retrieve data
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Returns data for a particular tool
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/get_tool_response'
+        "400":
+          description: Invalid Request
+        "401":
+          description: Invalid Token Request
+        "403":
+          description: Missing Required Token
+        "404":
+          description: Tool Information Unavailable
+        default:
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.data_hub_server_controller
+    post:
+      tags:
+      - UI_to_DataHub
+      summary: Edit metadata for a tool and/or upload a CSV with checker mappings
+      operationId: edit_tool
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: tool_id
+        in: path
+        description: Tool ID to update data
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        required: true
+        description: Tool information to upload
+        content:
+          multipart/form-data:
+            schema:
+              # all non-file parameters (even if not present in this
+              # schema) end up in the edit_tool_metadata kwarg
+              # structure.
+              #
+              # note: this workaround unfortunately eliminates the top
+              # level of automatic validation since 'edit_tool_metadata'
+              # isn't a first-class schema even though it is defined in
+              # the component schemas below-- here it's just the name of
+              # the body parameter. The schema for 'tool_metadata' *is*
+              # automatically applied, however. But by manually applying
+              # the 'edit_tool_metadata_outer' (which in turn applies
+              # 'edit_tool_metadata') model in the controller method we
+              # can catch undefined parameters adjacent to
+              # 'tool_metadata'.
+              x-body-name: edit_tool_metadata
+              type: object
+              properties:
+                tool_metadata:
+                  $ref: '#/components/schemas/base_tool'
+                checker_mappings_csv:
+                  type: string
+                  format: binary
+            encoding:
+              tool_metadata:
+                contentType: application/json
+                # https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#encoding-object
+                # note: explode and style:form have no effect
+                #explode: true
+                #style: form
+      responses:
+        "200":
+          description: OK, Tool Successfully Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tool_response'
+        "400":
+          description: Unable to Update Tool Information
+        "401":
+          description: Invalid Token Request
+        "403":
+          description: Missing Required Token
+        "404":
+          description: Tool Unavailable
+        default:
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.ui_to_data_hub_controller
+  /tools/{tool_id}/packages/{package_id}:
+    post:
+      tags:
+      - UI_to_DataHub
+      summary: Upload Tool Output and Metrics Tool CSVs
+      operationId: upload_tool_output
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: tool_id
+        in: path
+        description: Tool ID to upload data
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: package_id
+        in: path
+        description: Package ID to upload data
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              x-body-name: tool_output_data
+              $ref: '#/components/schemas/tool_output_data'
+      responses:
+        "200":
+          description: OK, Tool Output Accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/task_status'
+        "400":
+          description: Unable to Upload Tool Output
+        "401":
+          description: Invalid Token Request
+        "403":
+          description: Missing Required Token
+        default:
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.ui_to_data_hub_controller
+components:
+  schemas:
+    adaptive_heuristic_close_response:
+      required:
+      - project_status
+      type: object
+      properties:
+        project_status:
+          type: array
+          items:
+            $ref: '#/components/schemas/project_heuristic_message'
+    alert_mappings:
+      required:
+      - alert_id
+      - ui_alert_id
+      type: object
+      properties:
+        alert_id:
+          type: string
+        ui_alert_id:
+          type: string
+    alert_w_ui_id:
+      allOf:
+      - $ref: '#/components/schemas/base_alert'
+      - required:
+        - ui_alert_id
+        - code_language
+        type: object
+        properties:
+          ui_alert_id:
+            type: string
+          code_language:
+            $ref: '#/components/schemas/language_version'
+    alert_w_id:
+      allOf:
+      - $ref: '#/components/schemas/base_alert'
+      - required:
+        - alert_id
+        type: object
+        properties:
+          alert_id:
+            type: string
+          code_language_id:
+            type: string
+    base_alert:
+      required:
+      - checker_id
+      - primary_message
+      - tool_id
+      type: object
+      properties:
+        tool_id:
+          type: string
+        checker_id:
+          type: string
+        primary_message:
+          $ref: '#/components/schemas/message'
+        secondary_messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/message'
+    base_meta_alert:
+      required:
+      - filepath
+      - line_number
+      type: object
+      properties:
+        condition_id:
+          type: string
+          description: Condition ID associated with a Taxonomy
+        checker_id:
+          type: string
+          description: Checker ID associated with a Tool
+        filepath:
+          type: string
+        line_number:
+          type: integer
+      description: Meta-alerts must have either a condition_id or checker_id
+    base_tool:
+      type: object
+      properties:
+        tool_name:
+          type: string
+        tool_version:
+          type: string
+        language_platforms:
+          type: array
+          description: List of abbreviated languages the tool analyzes
+          items:
+            type: string
+        code_language_ids:
+          type: array
+          items:
+            type: string
+        checker_mappings:
+          type: array
+          description: JSON-formatted checker_mappings
+          items:
+            $ref: '#/components/schemas/checker_mappings_metadata'
+        checkers:
+          type: array
+          items:
+            type: string
+        code_metrics_headers:
+          type: array
+          description: Header fields expected for the metrics data
+          items:
+            type: string
+    cascading_data:
+      type: object
+      properties:
+        tool_output_data:
+          $ref: '#/components/schemas/tool_output_data'
+        sourcecode_archive:
+          $ref: '#/components/schemas/cascading_sourcecode'
+    cascading_performance:
+      type: object
+      properties:
+        project_id:
+          type: string
+        trues_cascaded:
+          type: integer
+          description: Number of True values that cascaded into the new project
+        falses_cascaded:
+          type: integer
+          description: Number of False values that cascaded into the new project
+        new_meta_alerts:
+          type: integer
+          description: Number of new meta-alerts that did not get a cascading value
+        old_meta_alerts:
+          type: integer
+          description: Number of old adjudications that did not cascade into the new
+            project
+        last_performed:
+          type: string
+          description: Date and time the cascading was performed
+          format: date-time
+    cascade_project:
+      type: object
+      properties:
+        cascading_type:
+          type: string
+          description: Type of cascading to perform for this upload. Uses default
+            if None provided.
+          enum:
+          - diff
+          - precise
+        cascading_project_id:
+          type: string
+          description: Use an existing DataHub project with this ID to perform the
+            cascading.
+        cascading_data:
+          $ref: '#/components/schemas/cascading_data'
+    cascading_sourcecode:
+      type: string
+      description: Source code archive upload to use when cascading.
+      format: binary
+    checker:
+      type: object
+      properties:
+        checker_id:
+          type: string
+        checker_name:
+          type: string
+    checker_condition:
+      type: object
+      properties:
+        checker_name:
+          type: string
+        conditions:
+          type: array
+          items:
+            $ref: '#/components/schemas/checker_condition_map'
+    checker_condition_w_id:
+      type: object
+      properties:
+        checker_id:
+          type: string
+        checker_name:
+          type: string
+        conditions:
+          type: array
+          items:
+            $ref: '#/components/schemas/condition_response_w_tax_id'
+    checker_condition_map:
+      allOf:
+      - $ref: '#/components/schemas/condition'
+      - required:
+        - taxonomy_name
+        type: object
+        properties:
+          taxonomy_name:
+            type: string
+          taxonomy_version:
+            type: string
+    checker_mappings:
+      type: object
+      properties:
+        checker_id:
+          type: string
+        checker_name:
+          type: string
+        tool_id:
+          type: string
+        conditions:
+          type: array
+          items:
+            $ref: '#/components/schemas/condition_response'
+    checker_mappings_metadata:
+      type: object
+      properties:
+        mapping_source:
+          type: string
+          description: Source of the mapping, e.g., CERT wiki, scale.app, etc.
+        mapper_identity:
+          type: array
+          items:
+            type: string
+            description: Mapper of the checker mappings, e.g., Vendor, Public, SC-Team,
+              etc.
+        mapping_version:
+          type: string
+        publishable_public_or_not:
+          type: boolean
+        dod_publication:
+          type: boolean
+        deprecated_or_not:
+          type: boolean
+        license_information:
+          type: string
+        additional_notes:
+          type: string
+        description:
+          type: string
+        mapping_date:
+          type: string
+          format: date-time
+        mapping_filename:
+          type: string
+          description: '''Filename of the mappings CSV that this data describes and
+            will be uploaded in a subsequent call'''
+        mappings:
+          type: array
+          items:
+            $ref: '#/components/schemas/checker_condition'
+    ci_contents:
+      required:
+      - git_commit_hash
+      - tool_id
+      - tool_output
+      type: object
+      properties:
+        git_commit_hash:
+          type: string
+          description: Git hash triggering the SCAIFE analysis
+        tool_id:
+          type: string
+          description: Tool ID of tool matching the submitted output (eg. id of cppcheck) 
+        tool_output:
+          type: string
+          description: Static analysis tool output
+          format: binary
+    classifier_package:
+      required:
+      - created_at
+      - package_id
+      - package_name
+      type: object
+      properties:
+        package_id:
+          type: string
+        package_name:
+          type: string
+        package_description:
+          type: string
+        code_languages:
+          $ref: '#/components/schemas/list_languages'
+        alerts:
+          $ref: '#/components/schemas/package_alerts_w_id'
+        test_suite_id:
+          type: string
+        tools:
+          type: array
+          items:
+            $ref: '#/components/schemas/classifier_tool'
+        source_files:
+          type: array
+          items:
+            $ref: '#/components/schemas/source_file'
+        uploader_id:
+          type: string
+        uploader_organization_id:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    classifier_project:
+      type: object
+      properties:
+        project_id:
+          type: string
+        project_name:
+          type: string
+        project_description:
+          type: string
+        package:
+          $ref: '#/components/schemas/classifier_package'
+        meta_alerts:
+          type: array
+          items:
+            $ref: '#/components/schemas/meta_alert_w_id'
+        taxonomies:
+          type: array
+          items:
+            $ref: '#/components/schemas/taxonomy'
+        author_source:
+          type: string
+        adaptive_heuristic_is_active:
+          type: boolean
+        uploader_id:
+          type: string
+        uploader_organization_id:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    classifier_projects_requested:
+      required:
+      - project_status
+      type: object
+      properties:
+        tool_taxonomies_present:
+          $ref: '#/components/schemas/tool_taxonomies_present'
+        project_status:
+          type: array
+          items:
+            $ref: '#/components/schemas/project_status'
+    classifier_tool:
+      required:
+      - category
+      - tool_id
+      - tool_name
+      - tool_version
+      type: object
+      properties:
+        tool_id:
+          type: string
+        tool_name:
+          type: string
+        tool_version:
+          type: string
+        category:
+          type: string
+        source_mappings:
+          type: array
+          items:
+            $ref: '#/components/schemas/source_mappings_classifier'
+        metrics_data_headers:
+          type: object
+          properties: {}
+          description: Header fields expected for the metrics data
+        uploader_id:
+          type: string
+        uploader_organization_id:
+          type: string
+        author_source:
+          type: string
+    condition:
+      required:
+      - condition_name
+      - title
+      type: object
+      properties:
+        code_language_ids:
+          type: array
+          items:
+            type: string
+        condition_name:
+          type: string
+        title:
+          type: string
+        platforms:
+          type: array
+          items:
+            type: string
+        condition_fields:
+          type: object
+          properties: {}
+          description: Fields associated with this condition, i.e., likelihood
+    condition_heading:
+      type: object
+      properties:
+        condition_id:
+          type: string
+        condition_name:
+          type: string
+        title:
+          type: string
+    condition_languages:
+      required:
+      - code_language_ids
+      - condition_ids
+      type: object
+      properties:
+        code_language_ids:
+          type: array
+          items:
+            type: string
+        condition_ids:
+          type: array
+          items:
+            type: string
+    condition_response:
+      allOf:
+      - $ref: '#/components/schemas/condition_response_w_id'
+      - type: object
+        properties:
+          taxonomy:
+            $ref: '#/components/schemas/taxonomy_heading'
+    condition_response_w_id:
+      allOf:
+      - $ref: '#/components/schemas/condition'
+      - required:
+        - condition_id
+        type: object
+        properties:
+          condition_id:
+            type: string
+    condition_response_w_tax_id:
+      allOf:
+      - $ref: '#/components/schemas/condition_response_w_id'
+      - type: object
+        properties:
+          taxonomy_id:
+            type: string
+    created_package:
+      required:
+      - package_id
+      - package_name
+      type: object
+      properties:
+        package_id:
+          type: string
+        package_name:
+          type: string
+        alert_mappings:
+          type: array
+          description: Alert IDs created in the DataHub
+          items:
+            $ref: '#/components/schemas/alert_mappings'
+    created_project:
+      required:
+      - project_id
+      - project_name
+      type: object
+      properties:
+        project_id:
+          type: string
+        project_name:
+          type: string
+        meta_alert_mappings:
+          type: array
+          description: Meta-Alert IDs created in the DataHub
+          items:
+            $ref: '#/components/schemas/meta_alert_mappings'
+    created_taxonomy:
+      required:
+      - conditions
+      - taxonomy_id
+      type: object
+      properties:
+        taxonomy_id:
+          type: string
+        conditions:
+          type: array
+          items:
+            $ref: '#/components/schemas/condition_heading'
+    determination:
+      type: object
+      properties:
+        flag_list:
+          type: array
+          items:
+            $ref: '#/components/schemas/determination_flag_list'
+        verdict_list:
+          type: array
+          items:
+            $ref: '#/components/schemas/determination_verdict_list'
+        ignored_list:
+          type: array
+          items:
+            $ref: '#/components/schemas/determination_ignored_list'
+        dead_list:
+          type: array
+          items:
+            $ref: '#/components/schemas/determination_dead_list'
+        inapplicable_environment_list:
+          type: array
+          items:
+            $ref: '#/components/schemas/determination_inapplicable_environment_list'
+        dangerous_construct_list:
+          type: array
+          items:
+            $ref: '#/components/schemas/determination_dangerous_construct_list'
+        notes_list:
+          type: array
+          items:
+            $ref: '#/components/schemas/determination_notes_list'
+    determination_dangerous_construct_list:
+      type: object
+      properties:
+        dangerous_construct:
+          type: string
+          description: Options for this field include Unknown, No Risk, Low Risk,
+            Medium Risk, and High Risk
+        timestamp:
+          type: string
+          format: date-time
+    determination_dead_list:
+      type: object
+      properties:
+        dead:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+    determination_flag_list:
+      type: object
+      properties:
+        flag:
+          type: boolean
+        timestamp:
+          type: string
+          format: date-time
+    determination_ignored_list:
+      type: object
+      properties:
+        ignored:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+    determination_inapplicable_environment_list:
+      type: object
+      properties:
+        inapplicable_environment:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+    determination_notes_list:
+      type: object
+      properties:
+        notes:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+    determination_verdict_list:
+      type: object
+      properties:
+        verdict:
+          type: string
+          description: '''Options for this field include Unknown, Complex, False,
+            Dependent, and True'
+        timestamp:
+          type: string
+          format: date-time
+    edit_package_metadata:
+      type: object
+      properties:
+        package_name:
+          type: string
+        package_description:
+          type: string
+        tool_ids:
+          type: array
+          description: List of new tools for this package
+          items:
+            type: string
+        alerts:
+          $ref: '#/components/schemas/package_alerts'
+    edit_project_metadata:
+      type: object
+      properties:
+        project_name:
+          type: string
+        project_description:
+          type: string
+        taxonomy_ids:
+          type: array
+          description: List of new taxonomies for this project
+          items:
+            type: string
+        meta_alerts:
+          $ref: '#/components/schemas/project_meta_alerts'
+    edit_taxonomy:
+      type: object
+      properties:
+        conditions:
+          type: array
+          items:
+            $ref: '#/components/schemas/condition'
+    edit_tool_metadata_outer:
+      type: object
+      properties:
+        # all non-file parameter fields end up in this object; there is
+        # only one in this case, however:
+        edit_tool_metadata:
+          $ref: '#/components/schemas/edit_tool_metadata'
+        # file parameters all get their own fields; only one in
+        # this case:
+        checker_mapping_csv:
+          type: string
+          description: '''
+            CSV with checker mappings, the filename should match the
+            mapping_filename in tool_metadata
+            '''
+          format: binary
+    edit_tool_metadata:
+      type: object
+      properties:
+        tool_metadata:
+          $ref: '#/components/schemas/base_tool'
+    edited_package:
+      type: object
+      properties:
+        package_id:
+          type: string
+        alert_mappings:
+          type: array
+          items:
+            $ref: '#/components/schemas/alert_mappings'
+    edited_project:
+      type: object
+      properties:
+        project_id:
+          type: string
+        meta_alert_mappings:
+          type: array
+          items:
+            $ref: '#/components/schemas/meta_alert_mappings'
+    get_alerts_response:
+      type: object
+      properties:
+        meta_alerts:
+          type: array
+          items:
+            $ref: '#/components/schemas/meta_alert_w_id'
+        alerts:
+          type: array
+          items:
+            $ref: '#/components/schemas/alert_w_id'
+    get_tool_response:
+      required:
+      - category
+      - tool_id
+      - tool_name
+      - tool_version
+      type: object
+      properties:
+        tool_id:
+          type: string
+        tool_name:
+          type: string
+        tool_version:
+          type: string
+        category:
+          type: string
+        language_platforms:
+          type: array
+          items:
+            type: string
+        source_mappings:
+          type: array
+          items:
+            $ref: '#/components/schemas/source_mappings'
+        code_metrics_headers:
+          type: array
+          description: Header fields expected for the metrics data
+          items:
+            type: string
+        uploader_id:
+          type: string
+        uploader_organization_id:
+          type: string
+        author_source:
+          type: string
+    language_version:
+      required:
+      - language
+      type: object
+      properties:
+        language:
+          type: string
+        version:
+          type: string
+    language_version_w_id:
+      required:
+      - code_language_id
+      - language
+      type: object
+      properties:
+        code_language_id:
+          type: string
+        language:
+          type: string
+        version:
+          type: string
+    list_languages:
+      type: array
+      items:
+        $ref: '#/components/schemas/language_version_w_id'
+    list_packages:
+      type: array
+      items:
+        $ref: '#/components/schemas/package_heading'
+    list_projects:
+      type: array
+      items:
+        $ref: '#/components/schemas/project_heading'
+    message:
+      required:
+      - filepath
+      - line_start
+      - message_text
+      properties:
+        line_start:
+          type: integer
+        line_end:
+          type: integer
+        filepath:
+          type: string
+        message_text:
+          type: string
+    meta_alert_determination:
+      required:
+      - determination
+      - meta_alert_id
+      type: object
+      properties:
+        meta_alert_id:
+          type: string
+        determination:
+          $ref: '#/components/schemas/determination'
+    meta_alert_determinations:
+      type: array
+      items:
+        $ref: '#/components/schemas/meta_alert_determination'
+    meta_alert_mappings:
+      type: object
+      required:
+      - meta_alert_id
+      - ui_meta_alert_id
+      properties:
+        meta_alert_id:
+          type: "string"
+        ui_meta_alert_id:
+          type: "string"
+    meta_alert_no_id:
+      allOf:
+      - $ref: '#/components/schemas/base_meta_alert'
+      - required:
+        - alert_ids
+        - filepath
+        - line_number
+        type: object
+        properties:
+          ui_meta_alert_id:
+            type: string
+          alert_ids:
+            type: array
+            items:
+              type: string
+          determination:
+            $ref: '#/components/schemas/determination'
+          auto_verdict:
+            type: object
+            additionalProperties:
+              type: string
+    meta_alert_w_id:
+      allOf:
+      - $ref: '#/components/schemas/meta_alert_no_id'
+      - required:
+        - meta_alert_id
+        type: object
+        properties:
+          meta_alert_id:
+            type: string
+          ui_meta_alert_id:
+            type: string
+          ct_pm_verdict:
+            type: object
+            additionalProperties:
+              type: string
+    metrics:
+      type: object
+      additionalProperties: true
+      description: Metrics data of various types
+    package:
+      required:
+      - created_at
+      - package_id
+      - package_name
+      type: object
+      properties:
+        package_id:
+          type: string
+        package_name:
+          type: string
+        package_description:
+          type: string
+        code_languages:
+          $ref: '#/components/schemas/list_languages'
+        alerts:
+          $ref: '#/components/schemas/package_alerts_w_id'
+        source_files:
+          type: array
+          items:
+            $ref: '#/components/schemas/source_file'
+        test_suite_id:
+          type: string
+        file_extensions:
+          type: array
+          items:
+            type: string
+        uploader_id:
+          type: string
+        uploader_organization_id:
+          type: string
+        author_source:
+          type: string
+        tool_ids:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    package_alerts_w_id:
+      type: array
+      items:
+        $ref: '#/components/schemas/alert_w_id'
+    package_alerts:
+      type: array
+      items:
+        $ref: '#/components/schemas/alert_w_ui_id'
+    package_contents:
+      required:
+      - sourcecode_archive
+      type: object
+      properties:
+        sourcecode_archive:
+          type: string
+          description: Source Code Archive for this package
+          format: binary
+        source_file_csv:
+          type: string
+          description: Source File CSV
+          format: binary
+        source_function_csv:
+          type: string
+          description: Source Function CSV
+          format: binary
+    package_heading:
+      required:
+      - package_description
+      - package_id
+      - package_name
+      type: object
+      properties:
+        package_id:
+          type: string
+        package_name:
+          type: string
+        package_description:
+          type: string
+        uploader_id:
+          type: string
+        uploader_organization_id:
+          type: string
+        author_source:
+          type: string
+        file_extensions:
+          type: array
+          items:
+            type: string
+        code__languages:
+          $ref: '#/components/schemas/list_languages'
+    package_metadata:
+      required:
+      - code_language_ids
+      - package_description
+      - package_name
+      - tool_ids
+      type: object
+      properties:
+        package_name:
+          type: string
+        package_description:
+          type: string
+        author_source:
+          type: string
+        code_language_ids:
+          type: array
+          items:
+            type: string
+        code_source_url:
+          type: string
+          description: URL to Source Code Archive
+          format: uri
+        source_file_url:
+          type: string
+          format: uri
+        source_function_url:
+          type: string
+          format: uri
+        test_suite_id:
+          type: string
+          description: Test Suite Associated with this Package
+        alerts:
+          $ref: '#/components/schemas/package_alerts'
+        tool_ids:
+          type: array
+          description: ID of the tools used with this Package
+          items:
+            type: string
+        git_url:
+          type: string
+          format: uri
+          description: url to git repository
+        git_user:
+          type: string
+          description: User name of git user to clone repository (Read-only access)
+        git_access_token:
+          type: string
+          format: password
+          description: Access token for git user
+    project:
+      type: object
+      properties:
+        project_id:
+          type: string
+        project_name:
+          type: string
+        project_description:
+          type: string
+        package_id:
+          type: string
+        uploader_id:
+          type: string
+        uploader_organization_id:
+          type: string
+        author_source:
+          type: string
+        meta_alerts:
+          type: array
+          items:
+            $ref: '#/components/schemas/meta_alert_w_id'
+        taxonomies:
+          type: array
+          items:
+            $ref: '#/components/schemas/taxonomy'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    project_heading:
+      required:
+      - package_id
+      - project_id
+      - project_name
+      type: object
+      properties:
+        project_id:
+          type: string
+        project_name:
+          type: string
+        project_description:
+          type: string
+        package_id:
+          type: string
+        uploader_id:
+          type: string
+        uploader_organization_id:
+          type: string
+        author_source:
+          type: string
+    project_heuristic_message:
+      type: object
+      properties:
+        project_id:
+          type: string
+        project_updated:
+          type: boolean
+        status_message:
+          type: string
+    project_meta_alerts:
+      type: array
+      items:
+        $ref: '#/components/schemas/meta_alert_no_id'
+    project_metadata:
+      required:
+      - package_id
+      - project_description
+      - project_name
+      type: object
+      properties:
+        project_name:
+          type: string
+        project_description:
+          type: string
+        author_source:
+          type: string
+        package_id:
+          type: string
+        use_checkers:
+          type: boolean
+          description: If true, the DataHub will use checkers to create
+            meta-alerts, instead of checker-to-condition mappings.
+            Default => False
+        cascading_type:
+          type: string
+          description: Default cascading type for the project. Default is 'diff'
+          enum:
+          - diff
+          - precise
+        meta_alerts:
+          $ref: '#/components/schemas/project_meta_alerts'
+        taxonomy_ids:
+          type: array
+          items:
+            type: string
+    projects_requested:
+      required:
+      - project_ids
+      type: object
+      properties:
+        taxonomies_present:
+          type: array
+          description: '''List of taxonomy ids for taxonomies already present at the
+            source module (Stats or UI). The destination module (DataHub) will use
+            this list to avoid sending duplicate taxonomy information.'''
+          items:
+            type: string
+        project_ids:
+          type: array
+          items:
+            type: string
+    project_status:
+      required:
+      - project_id
+      - set_adaptive_heuristic_open
+      type: object
+      properties:
+        project_id:
+          type: string
+        set_adaptive_heuristic_open:
+          type: boolean
+    source_file:
+      type: object
+      properties:
+        source_file_id:
+          type: string
+        filename:
+          type: string
+        filepath:
+          type: string
+        filepath_depth:
+          type: string
+        defect_info:
+          type: object
+          properties: {}
+        code_metrics_data:
+          type: array
+          items:
+            $ref: '#/components/schemas/metrics'
+        functions:
+          type: array
+          items:
+            $ref: '#/components/schemas/source_function'
+    source_function:
+      type: object
+      properties:
+        source_function_id:
+          type: string
+        name:
+          type: string
+        line_start:
+          type: integer
+        line_end:
+          type: integer
+        code_metrics_data:
+          type: array
+          items:
+            $ref: '#/components/schemas/metrics'
+    source_mappings:
+      type: object
+      properties:
+        mapping_id:
+          type: string
+        mapping_source:
+          type: string
+        checker_mappings:
+          type: array
+          items:
+            $ref: '#/components/schemas/checker_condition_w_id'
+    source_mappings_classifier:
+      type: object
+      properties:
+        mapping_id:
+          type: string
+        mapping_source:
+          type: string
+        checker_mappings:
+          type: array
+          items:
+            $ref: '#/components/schemas/checker_mappings'
+    task_status:
+      required:
+      - task_id
+      - task_url
+      type: object
+      properties:
+        task_id:
+          type: string
+        task_url:
+          type: string
+    taxonomy:
+      required:
+      - taxonomy_id
+      - taxonomy_name
+      - taxonomy_version
+      type: object
+      properties:
+        taxonomy_id:
+          type: string
+        taxonomy_name:
+          type: string
+          description: Name of the taxonomy, i.e., CERT or CWE
+        taxonomy_version:
+          type: string
+        description:
+          type: string
+        conditions:
+          type: array
+          items:
+            $ref: '#/components/schemas/condition_response_w_id'
+        uploader_id:
+          type: string
+        uploader_organization_id:
+          type: string
+        author_source:
+          type: string
+    taxonomy_heading:
+      required:
+      - taxonomy_id
+      - taxonomy_name
+      - taxonomy_version
+      type: object
+      properties:
+        taxonomy_id:
+          type: string
+        taxonomy_name:
+          type: string
+        taxonomy_version:
+          type: string
+        uploader_id:
+          type: string
+        uploader_organization_id:
+          type: string
+        author_source:
+          type: string
+    taxonomy_metadata:
+      required:
+      - conditions
+      - description
+      - taxonomy_name
+      - taxonomy_version
+      type: object
+      properties:
+        taxonomy_name:
+          type: string
+        taxonomy_version:
+          type: string
+        description:
+          type: string
+        author_source:
+          type: string
+          description: Author/Agency source of the taxonomy information
+        conditions:
+          type: array
+          items:
+            $ref: '#/components/schemas/condition'
+    test_suite_contents:
+      required:
+      - manifest_file
+      type: object
+      properties:
+        manifest_file:
+          type: string
+          description: Manifest for this test suite
+          format: binary
+        source_file_csv:
+          type: string
+          description: Source File CSV
+          format: binary
+        source_function_csv:
+          type: string
+          description: Source Function CSV
+          format: binary
+        use_license_file:
+          type: string
+          description: Use License for this test suite
+          format: binary
+    test_suite_heading:
+      required:
+      - test_suite_id
+      - test_suite_name
+      - test_suite_version
+      type: object
+      properties:
+        test_suite_id:
+          type: string
+        test_suite_name:
+          type: string
+        test_suite_version:
+          type: string
+        manifest_urls:
+          type: array
+          items:
+            type: string
+            description: Link to download the associated manifest
+            format: uri
+        uploader_id:
+          type: string
+        uploader_organization_id:
+          type: string
+        author_source:
+          type: string
+          description: Author/Agency source of the test suite information
+        code_languages:
+          $ref: '#/components/schemas/list_languages'
+    test_suite_metadata:
+      required:
+      - test_suite_name
+      - test_suite_version
+      type: object
+      properties:
+        test_suite_name:
+          type: string
+        test_suite_version:
+          type: string
+        test_suite_type:
+          type: string
+          description: Options include 'juliet', 'stonesoup' etc.
+          enum:
+          - juliet
+          - stonesoup
+        manifest_urls:
+          type: array
+          items:
+            type: string
+            description: Link to download the associated manifests
+            format: uri
+        use_license_file_url:
+          type: string
+          format: uri
+        author_source:
+          type: string
+          description: Author/Agency source of the test suite information
+        code_languages:
+          type: array
+          items:
+            $ref: '#/components/schemas/language_version'
+    tool_alert_mappings:
+      type: array
+      items:
+        $ref: '#/components/schemas/alert_mappings'
+    tool_heading:
+      required:
+      - tool_id
+      - tool_name
+      - tool_version
+      type: object
+      properties:
+        tool_id:
+          type: string
+        tool_name:
+          type: string
+        tool_version:
+          type: string
+        language_platforms:
+          type: array
+          items:
+            type: string
+        code_language_ids:
+          type: array
+          items:
+            type: string
+        uploader_id:
+          type: string
+        uploader_organization_id:
+          type: string
+        author_source:
+          type: string
+    tool_metadata:
+      allOf:
+      - $ref: '#/components/schemas/base_tool'
+      - required:
+        - category
+        - tool_name
+        - tool_version
+        type: object
+        properties:
+          author_source:
+            type: string
+          tool_parser:
+            type: string
+            description: Tool name from the GET /tool/parsers API of an available
+              SCAIFE parser
+          category:
+            type: string
+            description: The type of tool, e.g., FFSA or Metrics
+    tool_output_data:
+       type: object
+       properties:
+         metrics_tool_format:
+            type: string
+            description: Metrics tool used to produce the CSV
+            enum:
+            - ccsm
+            - lizard
+            - understand
+         ffsa_tool_format:
+           type: string
+           description: Format used in the FFSA tool output
+           enum:
+           - raw
+           - scarf
+           - swamp
+         tool_output_file:
+           type: string
+           description: Tool Output File to Upload to the DataHub
+           format: binary
+    tool_parsers:
+      type: array
+      items:
+        type: string
+    tool_response:
+      required:
+      - tool_id
+      - tool_name
+      - tool_version
+      type: object
+      properties:
+        tool_id:
+          type: string
+        tool_name:
+          type: string
+        tool_version:
+          type: string
+        category:
+          type: string
+        language_platforms:
+          type: array
+          items:
+            type: string
+        checkers:
+          type: array
+          items:
+            $ref: '#/components/schemas/checker'
+        code_language_ids:
+          type: array
+          items:
+            type: string
+        checker_mappings:
+          type: array
+          items:
+            $ref: '#/components/schemas/tool_response_mapping'
+    tool_response_mapping:
+      type: object
+      properties:
+        mapping_id:
+          type: string
+        mapping_source:
+          type: string
+        description:
+          type: string
+        mapping_date:
+          type: string
+          format: date-time
+    tool_taxonomies_present:
+      type: object
+      properties:
+        tool_ids:
+          type: array
+          description: '''List of tools already present at the source module (Stats).
+            The destination module (DataHub) will use this list to avoid sending duplicate
+            tool information.'''
+          items:
+            type: string
+        taxonomy_ids:
+          type: array
+          description: '''List of taxonomies already present at the source module
+            (Stats). The destination module (DataHub) will use this list to avoid
+            sending duplicate taxonomy information.'''
+          items:
+            type: string

@@ -1,0 +1,1009 @@
+openapi: 3.0.0
+info:
+  title: "SCAIFE Statistics Module API Definition"
+  description: "This is the API definition for a SCAIFE Stats Module.
+  SCAIFE facilitates auditing static analysis alerts using classifiers,
+  optional adaptive heuristics (active learning), and meta-alert
+  prioritization. SCAIFE enables jump-starting labeled datasets using
+  test suites. It is intended to enable a wide range of users (with
+  widely varying datasets, static analysis tools, machine learning
+  expertise, and amount of labeled data) to benefit from using
+  classifiers and sophisticated prioritization to automatically triage
+  static analysis meta-alerts."
+  version: "2.0.0"
+  contact:
+    name: SCAIFE Project
+    url: https://www.sei.cmu.edu/research-capabilities/all-work/display.cfm?customel_datapageid_4050=6453
+    email: lflynn@cert.org
+  license:
+    name: |-
+      SCAIFE API Copyright 2007-2021 Carnegie Mellon University. All Rights Reserved.
+
+      Redistribution and use in source and binary forms, with or
+      without modification, are permitted provided that the following
+      conditions are met:
+
+      1. Redistributions of source code must retain the above copyright
+         notice, this list of conditions and the following disclaimer.
+
+      2. Redistributions in binary form must reproduce the above
+         copyright notice, this list of conditions and the following
+         disclaimer in the documentation and/or other materials provided
+         with the distribution.
+
+      3. Products derived from this software may not include ''Carnegie
+         Mellon University,'' ''SEI'' and/or ''Software Engineering
+         Institute'' in the name of such derived product, nor shall
+         ''Carnegie Mellon University,'' ''SEI'' and/or ''Software
+         Engineering Institute'' be used to endorse or promote products
+         derived from this software without prior written permission.
+         For written permission, please contact permission@sei.cmu.edu.
+
+      ACKNOWLEDGMENTS AND DISCLAIMERS:
+
+      This material is based upon work funded and supported by the
+      Department of Defense under Contract No. FA8702-15-D-0002 with
+      Carnegie Mellon University for the operation of the Software
+      Engineering Institute, a federally funded research and
+      development center.
+
+      The view, opinions, and/or findings contained in this material are
+      those of the author(s) and should not be construed as an official
+      Government position, policy, or decision, unless designated by
+      other documentation.
+
+      NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE
+      ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN ''AS-IS'' BASIS.
+      CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER
+      EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED
+      TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY,
+      EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL.
+      CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND
+      WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT
+      INFRINGEMENT.
+
+      [DISTRIBUTION STATEMENT A] This material has been approved for
+      public release and unlimited distribution. Please see Copyright
+      notice for non-US Government use and distribution.
+
+      This material includes field names used in the Software Assurance
+      Marketplace (SWAMP), a service that provides continuous software
+      assurance capabilities to developers and researchers at
+      https://www.mir-swamp.org/#. Copyright © 2012-2021 The Morgridge
+      Institute for Research, Inc. All rights reserved.
+
+      This material includes field names used in the Software Assurance
+      Tool (SwAT), a tool that is used by analysts to analyze static
+      analysis alerts from multiple static analysis tools.
+      https://www.cerdec.army.mil/ Combat Capabilities Development
+      Command (CCDC) C5ISR Center. All rights reserved.
+
+      DM19-0572
+servers:
+- url: //127.0.0.1:8086/
+  description: Base URL for the Stats Server
+paths:
+  /status:
+    get:
+      tags:
+      - Stats_Server
+      summary: Provides Server Status
+      operationId: get_status
+      responses:
+        "200":
+          description: Server Is Running
+        "400":
+          description: Database Connection Lost
+        "default":
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.stats_server_controller
+  /classifiers:
+    get:
+      tags:
+      - UI_to_Stats
+      summary: List all classifiers and their associated data. Use the ids returned
+        from this request to work with classifiers.
+      operationId: list_classifiers
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/list_classifiers_response'
+        "400":
+          description: Invalid Request
+        "401":
+          description: Invalid Token Request
+        "403":
+          description: Missing Required Tokens
+        "default":
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.ui_to_stats_controller
+    post:
+      tags:
+      - UI_to_Stats
+      summary: Create a new classifier instance. Send Classifier information including
+        Automated Hyper-Parameter Optimization (AHPO) and Adaptive Heuristics to the
+        Stats Module along with package_ids for packages to use in creating/training
+        a classifier. Returns an id that is used to then run the classifier and any  additional
+        information for the classifier.
+      operationId: create_classifier_instance
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        schema:
+          type: string
+      requestBody:
+        description: Classifier information to create
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/classifier_instance'
+              x-body-name: classifier_instance
+        required: true
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/create_classifier_response'
+        400:
+          description: Unable to Create Classifier
+        401:
+          description: Invalid Token Request
+        403:
+          description: Missing Required Tokens
+        404:
+          description: Required Resources Not Found
+        422:
+          description: Data Lacks Verdicts Labeled 'True' and 'False'
+        501:
+          description: Error Retrieving DataHub Information
+        default:
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.ui_to_stats_controller
+      x-codegen-request-body-name: classifier_instance
+  /classifiers/{classifier_instance_id}/projects/{project_id}:
+    put:
+      tags:
+      - UI_to_Stats
+      summary: Run a specific classifier instance on the project identified by id
+        in the path. The response contains estimated class probablities and analysis
+        of classifier performance.
+      operationId: run_classifier_instance
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        schema:
+          type: string
+      - name: classifier_instance_id
+        in: path
+        description: The id of the classifier instance to run on the target domain
+        required: true
+        schema:
+          type: string
+      - name: project_id
+        in: path
+        description: The id of the project containing the packages
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/classifier_results'
+        400:
+          description: Unable to Run Classifier
+        401:
+          description: Invalid Token Request
+        403:
+          description: Missing Required Tokens
+        404:
+          description: Required Resources Not Found
+        501:
+          description: Error Retrieving DataHub Information
+        default:
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.ui_to_stats_controller
+  /classifiers/{classifier_instance_id}:
+    get:
+      tags:
+      - UI_to_Stats
+      summary: Get analysis for a specific Classifier including performance metrics.
+      operationId: get_classifier_instance_analysis
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        schema:
+          type: string
+      - name: classifier_instance_id
+        in: path
+        description: The id of the classifier to get analysis info
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/analysis_results'
+            text/html:
+              schema:
+                $ref: '#/components/schemas/analysis_results'
+        "400":
+          description: Invalid Request
+        "401":
+          description: Invalid Token Reques
+        "403":
+          description: Missing Required Tokens
+        "404":
+          description: Classifier Information Unavailable
+        "default":
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.ui_to_stats_controller
+    put:
+      tags:
+      - UI_to_Stats
+      summary: 'Edit a specific classifier from the Stats module by classifier_instance_id.       '
+      operationId: edit_classifier_instance
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        schema:
+          type: string
+      - name: classifier_instance_id
+        in: path
+        description: The id of the classifier instance to edit
+        required: true
+        schema:
+          type: string
+      requestBody:
+        description: Classifier information to edit
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/classifier_instance'
+              x-body-name: classifier_instance
+        required: true
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/create_classifier_response'
+        400:
+          description: Unable to Edit Classifier
+        401:
+          description: Invalid Token Request
+        403:
+          description: Missing Required Tokens
+        404:
+          description: Required Resources Not Found
+        422:
+          description: Data Lacks Verdicts Labeled 'True' and 'False'
+        501:
+          description: Error Retrieving DataHub Information
+        default:
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.ui_to_stats_controller
+      x-codegen-request-body-name: classifier_instance
+    delete:
+      tags:
+      - UI_to_Stats
+      summary: Delete a specific classifier from the Stats module by classifier_instance_id.
+      operationId: delete_classifier_instance
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        schema:
+          type: string
+      - name: classifier_instance_id
+        in: path
+        description: The id of the classifier to delete
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Classifier Successfully Deleted
+        "400":
+          description: Invalid Request
+        "401":
+          description: Invalid Token Request
+        "403":
+          description: Missing Required Tokens
+        "404":
+          description: Unable to Delete Classifier
+        "default":
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.ui_to_stats_controller
+  /classifiers/{classifier_instance_id}/retrain:
+    put:
+      tags:
+      - UI_to_Stats
+      summary: Returns new probability values if there are updates from the selected
+        classifier_instance.
+      operationId: retrain
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        schema:
+          type: string
+      - name: classifier_instance_id
+        in: path
+        description: The id of the classifier instance to run on the target domain
+        required: true
+        schema:
+          type: string
+      requestBody:
+        description: Information to send close adaptive heuristic request
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/classifier_instance_data'
+              x-body-name: classifier_instance_data
+        required: true
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/classifier_results'
+        204:
+          description: Not Updates
+        400:
+          description: Unable to Run Classifier
+        401:
+          description: Invalid Token Request
+        403:
+          description: Missing Required Tokens
+        404:
+          description: Required Resources Not Found
+        422:
+          description: Data Lacks Verdicts Labeled 'True' and 'False'
+        501:
+          description: Error Retrieving DataHub Information
+        default:
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.ui_to_stats_controller
+      x-codegen-request-body-name: classifier_instance_data
+  /classifiers/{classifier_instance_id}/adaptive_heuristics/close:
+    put:
+      tags:
+      - UI_to_Stats
+      summary: Stop adaptive heuristic forward request. Send a request to close (set
+        to false) the adaptive heuristic for the packages listed in the classifier
+        instance.
+      operationId: close_adaptive_heuristic_data_forwarding
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        schema:
+          type: string
+      - name: classifier_instance_id
+        in: path
+        description: The id of the classifier instance to run on the target domain
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/close_adaptive_heuristics_response'
+        "400":
+          description: Invalid Close Request
+        "401":
+          description: Invalid Token Request
+        "403":
+          description: Missing Required Tokens
+        "404":
+          description: Classifier Instance Unavailable
+        "default":
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.ui_to_stats_controller
+  /projects/{project_id}/packages/{package_id}/alerts:
+    put:
+      tags:
+      - DataHub_to_Stats
+      summary: Forward new Alerts that have been uploaded to the DataHub and have
+        a current open adaptive heuristic request for its respective package. Returns
+        status message for the DataHub to track if the request was completed.
+      operationId: send_alert_updates_for_classifier
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        schema:
+          type: string
+      - name: project_id
+        in: path
+        description: The id of the project associated with these alerts
+        required: true
+        schema:
+          type: string
+      - name: package_id
+        in: path
+        description: The id of the package associated with these alerts
+        required: true
+        schema:
+          type: string
+      requestBody:
+        description: Updated alert data
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/multiple_alerts'
+              x-body-name: multiple_alerts
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/alert_updates_response'
+        "400":
+          description: Unable to Upload Alerts
+        "401":
+          description: Invalid Token Request
+        "403":
+          description: Missing Required Tokens
+        "404":
+          description: Required Resources Not Found
+        "default":
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.data_hub_to_stats_controller
+      x-codegen-request-body-name: multiple_alerts
+  /packages/tools/{tool_id}:
+    put:
+      tags:
+      - DataHub_to_Stats
+      summary: Send FFSA or code metrics tool info to the Stats Module. When a new
+        tool is uploaded, the DataHub can send new tool info for packages with open
+        adaptive heuristic requests automatically to keep the Stats Module in sync.
+      operationId: send_new_tool
+      parameters:
+      - name: x_access_token
+        in: header
+        description: Token that contains information about the user
+        required: true
+        schema:
+          type: string
+      - name: tool_id
+        in: path
+        description: The id of the tool uploaded to the DataHub
+        required: true
+        schema:
+          type: string
+      requestBody:
+        description: Tool info, including name, version, plus FFSA checker info OR
+          code metrics field info and package ids associated with this new tool.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/packages_with_tool_data'
+              x-body-name: packages_with_tool_data
+        required: true
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Invalid Request
+        "401":
+          description: Invalid Token Request
+        "403":
+          description: Missing Required Tokens
+        "404":
+          description: Package Not Found
+        "default":
+          description: Unexpected Error
+      x-openapi-router-controller: swagger_server.controllers.data_hub_to_stats_controller
+      x-codegen-request-body-name: packages_with_tool_data
+components:
+  schemas:
+    alert:
+      required:
+      - alert_id
+      - checker_id
+      - primary_message
+      - tool_id
+      type: object
+      properties:
+        alert_id:
+          type: string
+        tool_id:
+          type: string
+        checker_id:
+          type: string
+        primary_message:
+          $ref: '#/components/schemas/message'
+        secondary_messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/secondary_message'
+    analysis_results:
+      type: object
+      properties:
+        classifier_instance_id:
+          type: string
+        probability_data:
+          type: array
+          items:
+            $ref: '#/components/schemas/classifier_results_probability_data'
+        classifier_analysis:
+          type: object
+          properties: {}
+        performance_metrics:
+          type: object
+          properties: {}
+    taxonomy:
+      required:
+      - taxonomy_id
+      - taxonomy_name
+      - taxonomy_version
+      type: object
+      properties:
+        taxonomy_id:
+          type: string
+        taxonomy_name:
+          type: string
+          description: Name of the taxonomy, i.e., CERT or CWE
+        taxonomy_version:
+          type: string
+        description:
+          type: string
+    condition:
+      type: object
+      properties:
+        condition_id:
+          type: string
+        condition_name:
+          type: string
+        title:
+          type: string
+        platforms:
+          type: array
+          items:
+            type: string
+        code_language_ids:
+          type: array
+          items:
+            type: string
+        condition_fields:
+          type: object
+          properties: {}
+          description: Fields associated with this condition, i.e., likelihood
+        taxonomy:
+          $ref: '#/components/schemas/taxonomy'
+    checker_mappings:
+      type: object
+      properties:
+        checker_id:
+          type: string
+        checker_name:
+          type: string
+        tool_id:
+          type: string
+        conditions:
+          type: array
+          items:
+            $ref: '#/components/schemas/condition'
+    classifier_instance:
+      required:
+      - classifier_id
+      - project_ids
+      type: object
+      properties:
+        classifier_id:
+          type: string
+        classifier_type:
+          type: string
+        classifier_instance_name:
+          type: string
+        project_ids:
+          type: array
+          items:
+            type: string
+        ahpo_id:
+          type: string
+        ahpo_name:
+          type: string
+        ahpo_parameters:
+          type: object
+          additionalProperties:
+            type: object
+            properties: {}
+        feature_selection_category:
+          type: string
+        adaptive_heuristic_id:
+          type: string
+        adaptive_heuristic_name:
+          type: string
+        adaptive_heuristic_parameters:
+          type: object
+          additionalProperties:
+            type: object
+            properties: {}
+        use_pca:
+          type: "boolean"
+        use_semantic_features:
+          type: "boolean"
+        num_meta_alert_threshold:
+          type: "integer"
+    classifier_instance_data:
+      required:
+      - project_id
+      - timestamp
+      type: object
+      properties:
+        project_id:
+          type: string
+          description: The id of the target project to run the classifier on
+        timestamp:
+          type: string
+          description: The current time
+          format: date-time
+    list_classifiers_response:
+      type: object
+      properties:
+        classifier_id:
+          type: string
+        classifier_type:
+          type: string
+        ahpos:
+          type: array
+          items:
+            $ref: '#/components/schemas/list_classifiers_response_ahpos'
+        adaptive_heuristics:
+          type: array
+          items:
+            $ref: '#/components/schemas/list_classifiers_response_adaptive_heuristics'
+    classifier_results:
+      required:
+      - probability_data
+      - project_id
+      type: object
+      properties:
+        classifier_instance_id:
+          type: string
+        project_id:
+          type: string
+          description: ID of project in the target domain
+        probability_data:
+          type: array
+          items:
+            $ref: '#/components/schemas/classifier_results_probability_data'
+        classifier_analysis:
+          type: object
+          properties: {}
+    close_adaptive_heuristics_response:
+      type: object
+      properties:
+        classifier_instance_id:
+          type: string
+        message:
+          type: string
+    create_classifier_response:
+      type: object
+      properties:
+        classifier_instance_id:
+          type: string
+        project_id:
+          type: string
+        analysis_messages:
+          type: object
+          properties: {}
+          description: Additional information that will help to understand this classifier
+            instance's performance
+    determination:
+      type: object
+      properties:
+        flag_list:
+          type: array
+          items:
+            $ref: '#/components/schemas/determination_flag_list'
+        verdict_list:
+          type: array
+          items:
+            $ref: '#/components/schemas/determination_verdict_list'
+        ignored_list:
+          type: array
+          items:
+            $ref: '#/components/schemas/determination_ignored_list'
+        dead_list:
+          type: array
+          items:
+            $ref: '#/components/schemas/determination_dead_list'
+        inapplicable_environment_list:
+          type: array
+          items:
+            $ref: '#/components/schemas/determination_inapplicable_environment_list'
+        dangerous_construct_list:
+          type: array
+          items:
+            $ref: '#/components/schemas/determination_dangerous_construct_list'
+        notes_list:
+          type: array
+          items:
+            $ref: '#/components/schemas/determination_notes_list'
+    message:
+      required:
+      - filepath
+      - line_start
+      - source_file_id
+      type: object
+      properties:
+        line_start:
+          type: integer
+        line_end:
+          type: integer
+        filepath:
+          type: string
+        source_file_id:
+          type: string
+        source_function_id:
+          type: string
+    meta_alert:
+      required:
+      - meta_alert_id
+      type: object
+      properties:
+        meta_alert_id:
+          type: string
+        condition_id:
+          type: string
+        filepath:
+          type: string
+        line_number:
+          type: integer
+        determination:
+          $ref: '#/components/schemas/determination'
+        alert_ids:
+          type: array
+          items:
+            type: string
+        auto_verdict:
+          type: object
+          additionalProperties:
+            type: string
+    multiple_alerts:
+      type: object
+      properties:
+        source_files:
+          type: array
+          items:
+            $ref: '#/components/schemas/sourcefile'
+        meta_alerts:
+          type: array
+          items:
+            $ref: '#/components/schemas/meta_alert'
+        alerts:
+          type: array
+          items:
+            $ref: '#/components/schemas/alert'
+    sourcefile:
+      type: object
+      properties:
+        source_file_id:
+          type: string
+        filename:
+          type: string
+        filepath:
+          type: string
+        filepath_depth:
+          type: string
+        defect_info:
+          type: object
+          properties: {}
+        code_metrics_data:
+          type: array
+          items:
+            $ref: '#/components/schemas/metrics'
+        functions:
+          type: array
+          items:
+            $ref: '#/components/schemas/sourcefunction'
+    sourcefunction:
+      type: object
+      properties:
+        source_function_id:
+          type: string
+        name:
+          type: string
+        line_start:
+          type: integer
+        line_end:
+          type: integer
+        code_metrics_data:
+          type: array
+          items:
+            $ref: '#/components/schemas/metrics'
+    metrics:
+      type: object
+    alert_updates_response:
+      type: object
+      properties:
+        project_id:
+          type: string
+        package_id:
+          type: string
+    secondary_message:
+      allOf:
+      - $ref: '#/components/schemas/message'
+      - required:
+        - message_text
+        type: object
+        properties:
+          message_text:
+            type: string
+    packages_with_tool_data:
+      type: object
+      properties:
+        package_ids:
+          type: array
+          items:
+            type: string
+        tool_data:
+          $ref: '#/components/schemas/packages_with_tool_data_tool_data'
+    list_classifiers_response_ahpos:
+      required:
+      - name
+      - parameters
+      type: object
+      properties:
+        ahpo_id:
+          type: string
+        name:
+          type: string
+        parameters:
+          type: object
+          properties: {}
+    list_classifiers_response_adaptive_heuristics:
+      required:
+      - name
+      - parameters
+      type: object
+      properties:
+        adaptive_heuristic_id:
+          type: string
+        name:
+          type: string
+        parameters:
+          type: object
+          properties: {}
+    classifier_results_probability_data:
+      type: object
+      properties:
+        meta_alert_id:
+          type: string
+        label:
+          type: string
+        probability:
+          type: number
+          format: double
+    determination_dangerous_construct_list:
+      type: object
+      properties:
+        dangerous_construct:
+          type: string
+          description: Options for this field include Unknown, No Risk, Low Risk,
+            Medium Risk, and High Risk
+        timestamp:
+          type: string
+          format: date-time
+    determination_dead_list:
+      type: object
+      properties:
+        dead:
+          type: string
+          description: Options for this field include True, False, and Unknown
+        timestamp:
+          type: string
+          format: date-time
+    determination_flag_list:
+      type: object
+      properties:
+        flag:
+          type: boolean
+        timestamp:
+          type: string
+          format: date-time
+    determination_ignored_list:
+      type: object
+      properties:
+        ignored:
+          type: string
+          description: Options for this field include True, False, and Unknown
+        timestamp:
+          type: string
+          format: date-time
+    determination_inapplicable_environment_list:
+      type: object
+      properties:
+        inapplicable_environment:
+          type: string
+          description: Options for this field include True, False, and Unknown
+        timestamp:
+          type: string
+          format: date-time
+    determination_notes_list:
+      type: object
+      properties:
+        notes:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+    determination_verdict_list:
+      type: object
+      properties:
+        verdict:
+          type: string
+          description: '''Options for this field include Unknown, Complex, False,
+            Dependent, and True'
+        timestamp:
+          type: string
+          format: date-time
+    source_mappings:
+      type: object
+      properties:
+        mapping_source:
+          type: string
+        checker_mappings:
+          type: array
+          items:
+            $ref: '#/components/schemas/checker_mappings'
+    packages_with_tool_data_tool_data:
+      type: object
+      properties:
+        tool_name:
+          type: string
+        tool_version:
+          type: string
+        tool_type:
+          type: string
+        source_mappings:
+          type: array
+          items:
+            $ref: '#/components/schemas/source_mappings'
+        code_metrics_data:
+          type: object
+          properties: {}
